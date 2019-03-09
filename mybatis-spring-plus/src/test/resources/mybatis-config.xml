@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<!--通过这个配置文件，完成mybatis与数据库的连接  -->
+<configuration>
+    <!-- 注意此配置文件内的元素的  -->
+    <!-- 引入database.properties文件 -->
+    <!--<properties resource="database.properties"/>-->
+    <!--配置mybatis的log实现为LOG4J  -->
+    <!-- 配置后，后台就会有sql语句的输出 -->
+    <settings>
+        <setting name="logImpl" value="LOG4J2"/>
+    </settings>
+    <!-- 设置类的别名 -->
+    <!--<typeAliases>
+        &lt;!&ndash; <typeAlias alias="User" type="com.wu.pojo.User"/> &ndash;&gt;
+        &lt;!&ndash; 根据包取别名，把包下面的所有类都按类名来取别名 &ndash;&gt;
+        &lt;!&ndash; 这用可以简化代码量 &ndash;&gt;
+        <package name="com.wu.pojo"/>
+    </typeAliases>-->
+
+    <typeHandlers>
+        <typeHandler handler="com.ddblock.mybatis.spring.plus.mapper.CommonMapperTypeHandler" javaType="com.ddblock.mybatis.spring.plus.mapper.CommonMapperResultType"/>
+    </typeHandlers>
+
+
+
+    <environments default="development">
+        <environment id="development">
+            <!-- 配置事务管理 ，采用JDBC管理事务-->
+            <transactionManager type="JDBC"/>
+            <!-- POOLED是mybatis的 数据源 -->
+            <!-- JNDI是基于tomcat的数据源 -->
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql://localhost:3306/test?useUnicode=true&amp;characterEncoding=utf8&amp;useSSL=false"/>
+                <property name="username" value="root"/>
+                <property name="password" value="root"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+
+
+    <!-- pojo的映射文件UserMapper引入到配入到配置文件中 -->
+    <mappers>
+        <!-- resource要写成路径 -->
+        <mapper class="com.ddblock.mybatis.spring.plus.mapper.CommonMapper"/>
+    </mappers>
+</configuration>

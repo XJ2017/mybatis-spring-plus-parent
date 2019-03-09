@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.ddblock.mybatis</groupId>
+		<artifactId>mybatis-spring-plus-parent</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>mybatis-spring-boot-start</artifactId>
+    <name>mybatis-spring-boot-starter</name>
+    <description>基于对接SpringBoot应用</description>
+	
+	<properties>
+        <mybatis-spring-plus.version>0.0.1-SNAPSHOT</mybatis-spring-plus.version>
+    </properties>
+
+    <dependencies>
+		<dependency>
+            <groupId>com.ddblock.mybatis</groupId>
+            <artifactId>mybatis-spring-plus</artifactId>
+            <version>${mybatis-spring-plus.version}</version>
+        </dependency>
+	
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+
+        <!-- 测试使用 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+		
+		<!-- 单元测试 -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- log4j 日志框架 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- druid 数据库连接池 -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- jdbc驱动 -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <scope>test</scope>
+        </dependency>
+		
+    </dependencies>
+
+</project>
