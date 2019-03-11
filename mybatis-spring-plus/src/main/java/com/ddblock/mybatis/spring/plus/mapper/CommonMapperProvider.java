@@ -2,7 +2,7 @@ package com.ddblock.mybatis.spring.plus.mapper;
 
 import com.ddblock.mybatis.spring.plus.mapper.support.Order;
 import com.ddblock.mybatis.spring.plus.mapper.support.Page;
-import com.ddblock.mybatis.spring.plus.model.annotation.PrimaryIndex;
+import com.ddblock.mybatis.spring.plus.model.annotation.Id;
 import com.ddblock.mybatis.spring.plus.model.annotation.Table;
 import org.apache.ibatis.jdbc.SQL;
 
@@ -329,7 +329,7 @@ public class CommonMapperProvider {
      */
     private static <T> String getTableName(Class<T> table) {
         Table t = table.getDeclaredAnnotation(Table.class);
-        return isEmpty(t.value()) ? table.getSimpleName() : t.value();
+        return isEmpty(t.value()) ? formatToDBName(table.getSimpleName()) : t.value();
     }
 
     /**
@@ -345,9 +345,9 @@ public class CommonMapperProvider {
 
         List<String> list = new ArrayList<>();
         for (Field f : fields) {
-            PrimaryIndex annotation = f.getDeclaredAnnotation(PrimaryIndex.class);
+            Id annotation = f.getDeclaredAnnotation(Id.class);
             if (annotation != null) {
-                String dbFieldName = isEmpty(annotation.value()) ? f.getName() : annotation.value();
+                String dbFieldName = isEmpty(annotation.value()) ? formatToDBName(f.getName()) : annotation.value();
                 list.add(dbFieldName);
             }
         }
@@ -377,7 +377,7 @@ public class CommonMapperProvider {
             com.ddblock.mybatis.spring.plus.model.annotation.Field annotation;
             annotation = field.getDeclaredAnnotation(com.ddblock.mybatis.spring.plus.model.annotation.Field.class);
             if (annotation != null) {
-                String dbFieldName = isEmpty(annotation.value()) ? field.getName() : annotation.value();
+                String dbFieldName = isEmpty(annotation.value()) ? formatToDBName(field.getName()) : annotation.value();
                 fieldList.add(dbFieldName);
             }
         }
@@ -429,6 +429,32 @@ public class CommonMapperProvider {
      */
     private static boolean isEmpty(String s) {
         return s == null || s.length() == 0;
+    }
+
+    /**
+     * 将Java中属性名、类名的命名规范相应转为数据库中字段名、表名的命名规范
+     *
+     * @param originName 符合Java中属性名、类名的命名规范的字符串
+     *
+     * @return 符合数据库中字段名、表名的命名规范的字符串
+     */
+    private static String formatToDBName(String originName) {
+        if (isEmpty(originName))
+            return null;
+
+        StringBuilder sb = new StringBuilder();
+        char[] chars = originName.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            char c = chars[i];
+            if (c >= 65 && c <= 90) {
+                if (i != 0)
+                    sb.append('_');
+                c = (char) (c + 32);
+            }
+            sb.append(c);
+        }
+
+        return sb.toString();
     }
 
 }

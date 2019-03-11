@@ -3,7 +3,7 @@ package com.ddblock.mybatis.spring.boot.bean;
 import com.ddblock.mybatis.spring.boot.model.BaseModel;
 import com.ddblock.mybatis.spring.plus.CommonDao;
 import com.ddblock.mybatis.spring.plus.model.annotation.Field;
-import com.ddblock.mybatis.spring.plus.model.annotation.PrimaryIndex;
+import com.ddblock.mybatis.spring.plus.model.annotation.Id;
 import com.ddblock.mybatis.spring.plus.model.annotation.Table;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.context.annotation.Bean;
@@ -22,7 +22,7 @@ public class TestUser2 extends BaseModel<TestUser2> {
         return super.addBean(sqlSessionFactory);
     }
 
-    @PrimaryIndex
+    @Id
     @Field
     private Integer id;
 

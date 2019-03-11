@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+<generatorConfiguration>
+    <properties resource="application.properties"/>
+
+    <context id="Mysql" targetRuntime="com.ddblock.mybatis.spring.boot.generator.IntrospectedTableMyBatis3ImplEx" defaultModelType="flat">
+
+        <jdbcConnection driverClass="com.mysql.jdbc.Driver"
+                        connectionURL="jdbc:mysql://localhost:3306/test?useUnicode=true&amp;characterEncoding=utf8&amp;useSSL=false"
+                        userId="root"
+                        password="root">
+        </jdbcConnection>
+
+        <javaModelGenerator targetPackage="com.ddblock.mybatis.spring.boot.generator.model" targetProject="src/test/java"/>
+
+        <!-- 配置数据表信息，只有在这里配置了的数据表才会生成，可以使用通配符，比如 user_% 表示以 user_开头的所有表，
+            如果直接使用 % 则表示对所有的数据表都生成
+         -->
+        <table tableName="%">
+            <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
+        </table>
+    </context>
+</generatorConfiguration>

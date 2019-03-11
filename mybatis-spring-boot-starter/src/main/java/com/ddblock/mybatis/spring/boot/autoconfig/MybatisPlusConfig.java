@@ -45,7 +45,7 @@ public class MybatisPlusConfig {
         configuration.addMapper(CommonMapper.class);
 
         // 设置日志实现
-        configuration.setLogImpl(Slf4jImpl.class);
+//        configuration.setLogImpl(Slf4jImpl.class);
 
         return sqlSessionFactory;
     }

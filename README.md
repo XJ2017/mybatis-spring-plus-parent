@@ -5,7 +5,7 @@ mybatis-spring-plus是为实现更便捷操作DB而生
 
 #### 便捷点
 1. 无需生成与编写 *xxxMapper.xml* 文件
-2. 新增或修改表字段信息只需要直接操作表对应的Model类（不包括DB中的修改）
+2. 支持连接数据库自动生成Model对象
 3. 支持在方法参数中自定义SQL
 
 #### 模块
@@ -25,6 +25,8 @@ mybatis-spring-plus是为实现更便捷操作DB而生
     1. 进入模块mybatis-spring-boot-starter
     2. 修改application.properties中的数据库配置信息（在test的资源下）
     3. 运行测试类：com.ddblock.mybatis.spring.boot.CommonDaoTest（在test的类中）
+    4. 修改generatorConfig.xml中的数据库配置信息（在test的资源下）
+    5. 运行生成Model的测试类：com.ddblock.mybatis.spring.boot.generator.ShellRunnerTest（在test的类中）
 
 #### 下一步打算
 1. 完善与Spring-boot的对接

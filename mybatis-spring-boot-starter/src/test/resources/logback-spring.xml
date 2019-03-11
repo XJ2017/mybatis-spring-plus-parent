@@ -2,10 +2,10 @@
 <configuration>
 	<!-- 日志保存目录 -->
 	<property name="LOG_PATH" value="logs"/>
-	
+
 	<!-- 配置日志输出格式，调用方式：${LOG_PATTERN} -->
 	<property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
-	
+
 	<!-- 配置系统日志输出 -->
 	<appender name="consoleLog" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
@@ -13,103 +13,15 @@
 			<charset>UTF-8</charset>
 		</encoder>
 	</appender>
-	
-	<!-- 指定项目中某个类的日志输出到指定文件-->
-	<appender name="recInfoLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<append>true</append>
-		<encoder>
-			<pattern>${LOG_PATTERN}</pattern>
-			<charset>UTF-8</charset>
-		</encoder>
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${LOG_PATH}/jobs.%d{yyyy-MM-dd}.log</fileNamePattern>
-			<maxHistory>15</maxHistory>
-		</rollingPolicy>
-		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-			<maxFileSize>100MB</maxFileSize>
-		</triggeringPolicy>
-	</appender>
-	
-	<!--根据日志级别分离日志，分别输出到不同的文件-->
-	<appender name="fileInfoLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<filter class="ch.qos.logback.classic.filter.LevelFilter"> <!-- 只打印info日志 -->
-			<level>INFO</level>
-			<onMatch>ACCEPT</onMatch>
-			<onMismatch>DENY</onMismatch>
-		</filter>
-		<append>true</append>
-		<encoder>
-			<pattern>%c - %m%n</pattern>
-			<charset>UTF-8</charset>
-		</encoder>
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${LOG_PATH}/logback.info.%d{yyyy-MM-dd}.log</fileNamePattern>
-			<maxHistory>5</maxHistory>
-		</rollingPolicy>
-		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-			<maxFileSize>100MB</maxFileSize>
-		</triggeringPolicy>
-	</appender>
-	
-	<!-- warn日志配置 -->
-	<appender name="fileWarnLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-			<level>WARN</level>
-		</filter>
-		<encoder>
-			<pattern>%msg%n</pattern>
-			<charset>UTF-8</charset>
-		</encoder>
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${LOG_PATH}/logback.warn.%d{yyyy-MM-dd}.log</fileNamePattern>
-			<maxHistory>5</maxHistory>
-		</rollingPolicy>
-		<filter class="ch.qos.logback.classic.filter.LevelFilter"><!-- 只打印警告日志 -->
-			<level>ERROR</level>
-			<onMatch>ACCEPT</onMatch>
-			<onMismatch>DENY</onMismatch>
-		</filter>
-	</appender>
-	
-	<!-- error日志配置-->
-	<appender name="fileErrorLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-			<level>ERROR</level>
-		</filter>
-		<encoder>
-			<pattern>%msg%n</pattern>
-			<charset>UTF-8</charset>
-		</encoder>
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${LOG_PATH}/logback.error.%d{yyyy-MM-dd}.log</fileNamePattern>
-			<maxHistory>5</maxHistory>
-		</rollingPolicy>
-		<filter class="ch.qos.logback.classic.filter.LevelFilter"><!-- 只打印错误日志 -->
-			<level>ERROR</level>
-			<onMatch>ACCEPT</onMatch>
-			<onMismatch>DENY</onMismatch>
-		</filter>
-	</appender>
-	
-	 <!--根据设置日志级别，屏蔽相关的日志：以下包及子包的日志会屏蔽掉-->
+
+
+	<!--根据设置日志级别，屏蔽相关的日志：以下包及子包的日志会屏蔽掉-->
 	<logger name="org.springframework" level="WARN"/>
 	<logger name="com.alibaba.druid" level="INFO"/>
 	<logger name="org.apache" level="WARN"/>
-	
-	 <!--打印 SQL 语句 -->
-	<!--<logger name="com.ppblock.wallet.core.dao" level="DEBUG"></logger>-->
-	<!-- 设置 web3j 的日志级别 -->
-	<logger name="org.web3j.protocol" level="INFO"/>
-	
-	<!-- 将所有任务调度的日志输出到指定的日志对象中 -->
-	<logger name="com.ppblock.wallet.core.jobs" level="INFO" additivity="false">
-		<appender-ref ref="recInfoLog" />
-	</logger>
-	
+
 	<!-- 项目中info级别的日志会输出到以下日志对象中 -->
 	<root level="DEBUG">
 		<appender-ref ref="consoleLog" />
-		<!--<appender-ref ref="fileInfoLog" />
-		<appender-ref ref="fileErrorLog" />-->
 	</root>
 </configuration>

@@ -10,7 +10,7 @@
 		<version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>mybatis-spring-boot-start</artifactId>
+    <artifactId>mybatis-spring-boot-starter</artifactId>
     <name>mybatis-spring-boot-starter</name>
     <description>基于对接SpringBoot应用</description>
 	
@@ -23,6 +23,11 @@
             <groupId>com.ddblock.mybatis</groupId>
             <artifactId>mybatis-spring-plus</artifactId>
             <version>${mybatis-spring-plus.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mybatis.generator</groupId>
+            <artifactId>mybatis-generator-core</artifactId>
         </dependency>
 	
         <dependency>

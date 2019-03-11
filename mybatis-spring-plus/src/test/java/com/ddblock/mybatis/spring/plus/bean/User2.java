@@ -1,7 +1,7 @@
 package com.ddblock.mybatis.spring.plus.bean;
 
 import com.ddblock.mybatis.spring.plus.model.annotation.Field;
-import com.ddblock.mybatis.spring.plus.model.annotation.PrimaryIndex;
+import com.ddblock.mybatis.spring.plus.model.annotation.Id;
 import com.ddblock.mybatis.spring.plus.model.annotation.Table;
 
 /**
@@ -11,7 +11,7 @@ import com.ddblock.mybatis.spring.plus.model.annotation.Table;
 @Table("user2")
 public class User2 {
 
-    @PrimaryIndex
+    @Id
     @Field
     private Integer id;
 
