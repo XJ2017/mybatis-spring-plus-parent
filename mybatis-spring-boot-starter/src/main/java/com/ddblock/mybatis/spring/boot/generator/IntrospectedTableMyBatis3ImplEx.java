@@ -5,6 +5,7 @@ import org.mybatis.generator.api.ProgressCallback;
 import org.mybatis.generator.api.dom.java.CompilationUnit;
 import org.mybatis.generator.codegen.AbstractJavaGenerator;
 import org.mybatis.generator.codegen.mybatis3.IntrospectedTableMyBatis3Impl;
+import org.mybatis.generator.codegen.mybatis3.model.SimpleModelGenerator;
 import org.mybatis.generator.config.CommentGeneratorConfiguration;
 import org.mybatis.generator.config.Context;
 import org.mybatis.generator.config.PropertyRegistry;
@@ -24,7 +25,7 @@ public class IntrospectedTableMyBatis3ImplEx extends IntrospectedTableMyBatis3Im
     // 每个表都会执行一次
     @Override
     protected void calculateJavaModelGenerators(List<String> warnings, ProgressCallback progressCallback) {
-        AbstractJavaGenerator javaGenerator = new SimpleModelGeneratorEx();
+        AbstractJavaGenerator javaGenerator = new SimpleModelGenerator();
         initializeAbstractGenerator(javaGenerator, warnings, progressCallback);
         javaModelGenerators.add(javaGenerator);
 
