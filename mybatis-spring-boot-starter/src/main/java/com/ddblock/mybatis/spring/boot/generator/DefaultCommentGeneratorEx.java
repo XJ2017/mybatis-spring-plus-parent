@@ -9,7 +9,6 @@ import org.mybatis.generator.api.dom.java.Method;
 import org.mybatis.generator.api.dom.java.Parameter;
 import org.mybatis.generator.api.dom.java.TopLevelClass;
 import org.mybatis.generator.internal.DefaultCommentGenerator;
-import org.springframework.context.annotation.Configuration;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -34,8 +33,7 @@ public class DefaultCommentGeneratorEx extends DefaultCommentGenerator {
 
     @Override
     public void addModelClassComment(TopLevelClass topLevelClass, IntrospectedTable introspectedTable) {
-//        String author = properties.getProperty("author");
-        String dateFormat = properties.getProperty("dateFormat", "yyyy-MM-dd");
+        String dateFormat = properties.getProperty("dateFormat", "yyyy-MM-dd HH:mm");
         SimpleDateFormat dateFormatter = new SimpleDateFormat(dateFormat);
 
         // 获取表注释
@@ -43,13 +41,10 @@ public class DefaultCommentGeneratorEx extends DefaultCommentGenerator {
 
         topLevelClass.addJavaDocLine("/**");
         topLevelClass.addJavaDocLine(" * " + remarks);
-        topLevelClass.addJavaDocLine(" *");
-//        topLevelClass.addJavaDocLine(" * @author " + author);
-        topLevelClass.addJavaDocLine(" * @date " + dateFormatter.format(new Date()));
+        topLevelClass.addJavaDocLine(" * Date " + dateFormatter.format(new Date()));
         topLevelClass.addJavaDocLine(" */");
 
         // 添加注解所需要的类
-        topLevelClass.addImportedType(Configuration.class.getName());
         topLevelClass.addImportedType(Table.class.getName());
         topLevelClass.addImportedType(com.ddblock.mybatis.spring.plus.model.annotation.Field.class.getName());
 
@@ -59,7 +54,6 @@ public class DefaultCommentGeneratorEx extends DefaultCommentGenerator {
         }
 
         // 添加注解
-        topLevelClass.addAnnotation("@Configuration");
         topLevelClass.addAnnotation("@Table");
     }
 

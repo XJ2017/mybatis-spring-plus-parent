@@ -1,13 +1,12 @@
 package com.ddblock.mybatis.spring.boot.generator;
 
-import com.ddblock.mybatis.spring.boot.model.BaseModel;
-import com.ddblock.mybatis.spring.plus.CommonDao;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.mybatis.generator.api.*;
+import org.mybatis.generator.api.CommentGenerator;
+import org.mybatis.generator.api.FullyQualifiedTable;
+import org.mybatis.generator.api.IntrospectedColumn;
+import org.mybatis.generator.api.Plugin;
 import org.mybatis.generator.api.dom.java.*;
 import org.mybatis.generator.codegen.RootClassInfo;
 import org.mybatis.generator.codegen.mybatis3.model.SimpleModelGenerator;
-import org.springframework.context.annotation.Bean;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,10 +36,10 @@ public class SimpleModelGeneratorEx extends SimpleModelGenerator {
         commentGenerator.addJavaFileComment(topLevelClass);
 
         // 给基类添加类型参数
-        FullyQualifiedJavaType superClass = new FullyQualifiedJavaType(BaseModel.class.getSimpleName());
-        superClass.addTypeArgument(type);
-        topLevelClass.setSuperClass(superClass);
-        topLevelClass.addImportedType(BaseModel.class.getName());
+//        FullyQualifiedJavaType superClass = new FullyQualifiedJavaType(BaseModel.class.getSimpleName());
+//        superClass.addTypeArgument(type);
+//        factoryTopLevelClass.setSuperClass(superClass);
+//        factoryTopLevelClass.addImportedType(BaseModel.class.getName());
 
         commentGenerator.addModelClassComment(topLevelClass, introspectedTable);
 
@@ -86,9 +85,6 @@ public class SimpleModelGeneratorEx extends SimpleModelGenerator {
             }
         }
 
-        // 添加addBean方法
-        topLevelClass.addMethod(getAddBeanMethod(topLevelClass));
-
         List<CompilationUnit> answer = new ArrayList<CompilationUnit>();
         if (context.getPlugins().modelBaseRecordClassGenerated(topLevelClass,
                 introspectedTable)) {
@@ -97,39 +93,7 @@ public class SimpleModelGeneratorEx extends SimpleModelGenerator {
         return answer;
     }
 
-    /**
-     * 生成重写父类addBean的方法
-     *
-     * @param topLevelClass TopLevelClass
-     *
-     * @return addBean方法
-     */
-    private Method getAddBeanMethod(TopLevelClass topLevelClass) {
-        // 添加导包信息
-        topLevelClass.addImportedType(Bean.class.getName());
-        topLevelClass.addImportedType(SqlSessionFactory.class.getName());
-        topLevelClass.addImportedType(CommonDao.class.getName());
-
-        // 设置参数信息
-        FullyQualifiedJavaType paramType = new FullyQualifiedJavaType("SqlSessionFactory");
-        Parameter factoryParam = new Parameter(paramType, "sqlSessionFactory");
-
-        // 设置返回信息
-        FullyQualifiedJavaType retureType = new FullyQualifiedJavaType("CommonDao");
-        retureType.addTypeArgument(topLevelClass.getType());
-
-        Method method = new Method();
-        method.addAnnotation("@Bean");
-        method.addAnnotation("@Override");
-        method.setVisibility(JavaVisibility.PROTECTED);
-        method.setName("addBean");
-        method.addParameter(factoryParam);
-        method.addBodyLine("return super.addBean(sqlSessionFactory);");
-        method.setReturnType(retureType);
-
-        return method;
-    }
-
+    // 复制父类的方法
     private void addParameterizedConstructor(TopLevelClass topLevelClass) {
         Method method = new Method();
         method.setVisibility(JavaVisibility.PUBLIC);
@@ -161,6 +125,4 @@ public class SimpleModelGeneratorEx extends SimpleModelGenerator {
 
         topLevelClass.addMethod(method);
     }
-
-
 }

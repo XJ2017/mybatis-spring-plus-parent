@@ -1,10 +1,13 @@
 package com.ddblock.mybatis.spring.boot.generator;
 
+import org.mybatis.generator.api.GeneratedJavaFile;
 import org.mybatis.generator.api.ProgressCallback;
+import org.mybatis.generator.api.dom.java.CompilationUnit;
 import org.mybatis.generator.codegen.AbstractJavaGenerator;
 import org.mybatis.generator.codegen.mybatis3.IntrospectedTableMyBatis3Impl;
 import org.mybatis.generator.config.CommentGeneratorConfiguration;
 import org.mybatis.generator.config.Context;
+import org.mybatis.generator.config.PropertyRegistry;
 
 import java.util.List;
 
@@ -16,10 +19,16 @@ import java.util.List;
  */
 public class IntrospectedTableMyBatis3ImplEx extends IntrospectedTableMyBatis3Impl {
 
+    private static volatile boolean isAdd = false;
+
+    // 每个表都会执行一次
     @Override
     protected void calculateJavaModelGenerators(List<String> warnings, ProgressCallback progressCallback) {
         AbstractJavaGenerator javaGenerator = new SimpleModelGeneratorEx();
+        initializeAbstractGenerator(javaGenerator, warnings, progressCallback);
+        javaModelGenerators.add(javaGenerator);
 
+        javaGenerator = new CommonDaoFactoryJavaGenerator();
         initializeAbstractGenerator(javaGenerator, warnings, progressCallback);
         javaModelGenerators.add(javaGenerator);
 
@@ -31,5 +40,31 @@ public class IntrospectedTableMyBatis3ImplEx extends IntrospectedTableMyBatis3Im
             configuration.setConfigurationType(DefaultCommentGeneratorEx.class.getName());
             context.setCommentGeneratorConfiguration(configuration);
         }
+    }
+
+    // 每个表都会执行一次
+    @Override
+    public List<GeneratedJavaFile> getGeneratedJavaFiles() {
+        List<GeneratedJavaFile> generatedJavaFiles = super.getGeneratedJavaFiles();
+
+        if (! isAdd) {
+            synchronized (IntrospectedTableMyBatis3ImplEx.class) {
+                if (! isAdd) {
+
+                    CompilationUnit compilationUnit = CommonDaoFactoryJavaGenerator.getCompilationUnit();
+                    GeneratedJavaFile gjf = new GeneratedJavaFile(compilationUnit,
+                            context.getJavaModelGeneratorConfiguration()
+                                    .getTargetProject(),
+                            context.getProperty(PropertyRegistry.CONTEXT_JAVA_FILE_ENCODING),
+                            context.getJavaFormatter());
+
+                    generatedJavaFiles.add(gjf);
+
+                    isAdd = true;
+                }
+            }
+        }
+
+        return generatedJavaFiles;
     }
 }
