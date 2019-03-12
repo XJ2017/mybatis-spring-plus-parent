@@ -34,7 +34,7 @@ public interface CommonMapper {
      * @return int 返回的变更条数
      */
     @UpdateProvider(type = CommonMapperProvider.class, method = "update")
-    <T> int update(T model, boolean doNull);
+    <T> int update(@Param("model") T model, @Param("doNull") boolean doNull);
 
     /**
      * 根据对象值条件，批量更新符合条件的记录集合
@@ -46,7 +46,7 @@ public interface CommonMapper {
      * @return int 返回的变更条数
      */
     @UpdateProvider(type = CommonMapperProvider.class, method = "updateBatch")
-    <T> int updateBatch(T setData, T whereData, boolean doNull);
+    <T> int updateBatch(@Param("setData") T setData, @Param("whereData") T whereData, @Param("doNull") boolean doNull);
 
     /**
      * 根据 id 删除一条数据
@@ -58,7 +58,7 @@ public interface CommonMapper {
      * @return 返回的变更条数
      */
     @DeleteProvider(type = CommonMapperProvider.class, method = "delete")
-    <T> int delete(Class<T> table, Serializable id);
+    <T> int delete(@Param("table") Class<T> table, @Param("id") Serializable id);
 
     /**
      * 根据对象值条件，批量删除符合条件的记录集合
@@ -69,7 +69,7 @@ public interface CommonMapper {
      * @return int 返回的变更条数
      */
     @DeleteProvider(type = CommonMapperProvider.class, method = "deleteBatch")
-    <T> int deleteBatch(T whereData, boolean doNull);
+    <T> int deleteBatch(@Param("whereData") T whereData, @Param("doNull") boolean doNull);
 
     /**
      * 根据id查询一条记录
@@ -81,7 +81,7 @@ public interface CommonMapper {
      */
     @ResultType(value = CommonMapperResultType.class)
     @SelectProvider(type = CommonMapperProvider.class, method = "searchOne")
-    <T> void searchOne(Class<T> table, Serializable id, CommonMapperResultHandler resultHandler);
+    <T> void searchOne(@Param("table") Class<T> table, @Param("id") Serializable id, CommonMapperResultHandler resultHandler);
 
     /**
      * 根据对象值条件，查询符合条件的记录集合
@@ -93,7 +93,7 @@ public interface CommonMapper {
      */
     @ResultType(value = CommonMapperResultType.class)
     @SelectProvider(type = CommonMapperProvider.class, method = "searchList")
-    <T> void searchList(T whereData, CommonMapperResultHandler resultHandler, Order... orders);
+    <T> void searchList(@Param("whereData") T whereData, CommonMapperResultHandler resultHandler, @Param("orders") Order... orders);
 
     /**
      * 根据自定义SQL，查询符合条件的记录集合
@@ -116,7 +116,7 @@ public interface CommonMapper {
      */
     @ResultType(value = CommonMapperResultType.class)
     @SelectProvider(type = CommonMapperProvider.class, method = "searchAll")
-    <T> void searchAll(Class<T> table, CommonMapperResultHandler resultHandler, Order... orders);
+    <T> void searchAll(@Param("table") Class<T> table, CommonMapperResultHandler resultHandler, @Param("orders") Order... orders);
 
     /**
      * 按照排序规则将表中数据分页查询出来
@@ -129,7 +129,7 @@ public interface CommonMapper {
      */
     @ResultType(value = CommonMapperResultType.class)
     @SelectProvider(type = CommonMapperProvider.class, method = "searchAllByPage")
-    <T> void searchAllByPage(Class<T> table, Page<T> page, CommonMapperResultHandler resultHandler, Order... orders);
+    <T> void searchAllByPage(@Param("table") Class<T> table, @Param("page") Page<T> page, CommonMapperResultHandler resultHandler, @Param("orders") Order... orders);
 
     /**
      * 获取符合条件的总记录数

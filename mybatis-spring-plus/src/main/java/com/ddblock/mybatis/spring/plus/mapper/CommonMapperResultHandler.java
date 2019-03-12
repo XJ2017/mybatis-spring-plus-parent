@@ -1,12 +1,15 @@
 package com.ddblock.mybatis.spring.plus.mapper;
 
+import com.ddblock.mybatis.spring.plus.util.StringUtil;
 import org.apache.ibatis.session.ResultContext;
 import org.apache.ibatis.session.ResultHandler;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 将数据库中查询出来的Map数据，转换为Model数据
@@ -41,8 +44,22 @@ public class CommonMapperResultHandler<T> implements ResultHandler {
             @SuppressWarnings("unchecked")
             Map<String, Object> map = (Map<String, Object>) resultContext.getResultObject();
 
+            Method[] methods = table.getMethods();
+            for (Method method : methods) {
+                String methodName = method.getName();
+                if (methodName.indexOf("set") == 0) {
+                    String fieldName = StringUtil.formatToDBName(methodName.substring(3));
+                    if (map.size() > 0 && map.containsKey(fieldName)) {
+                        method.invoke(model, map.get(fieldName));
+                        map.remove(fieldName);
+                    }
+                }
+            }
+
             for (Map.Entry<String, Object> entry : map.entrySet()) {
-                Field field = table.getDeclaredField(entry.getKey());
+                String fieldName = Objects.requireNonNull(StringUtil.formatToJavaName(entry.getKey()));
+
+                Field field = table.getDeclaredField(fieldName);
                 field.setAccessible(true);
                 field.set(model, entry.getValue());
             }

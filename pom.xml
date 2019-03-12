@@ -31,12 +31,12 @@
         <maven_compiler_plugin_version>3.5</maven_compiler_plugin_version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <mybatis.version>3.4.0</mybatis.version>
-        <mybatis-spring.version>1.3.0</mybatis-spring.version>
+        <mybatis.version>3.5.0</mybatis.version>
+        <mybatis-spring.version>2.0.0</mybatis-spring.version>
         <mybatis-generator.version>1.3.7</mybatis-generator.version>
         <starter-log4j2.version>2.1.3.RELEASE</starter-log4j2.version>
         <mysql.version>5.1.30</mysql.version>
-        <druid.version>1.1.10</druid.version>
+        <druid.version>1.1.14</druid.version>
     </properties>
 
     <dependencyManagement>

@@ -4,6 +4,7 @@ import com.ddblock.mybatis.spring.plus.mapper.support.Order;
 import com.ddblock.mybatis.spring.plus.mapper.support.Page;
 import com.ddblock.mybatis.spring.plus.model.annotation.Id;
 import com.ddblock.mybatis.spring.plus.model.annotation.Table;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.jdbc.SQL;
 
 import java.io.Serializable;
@@ -12,6 +13,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static com.ddblock.mybatis.spring.plus.util.StringUtil.*;
 
 /**
  * 通用处理Mapper的SQL实现
@@ -36,7 +39,7 @@ public class CommonMapperProvider {
 
                 List<String> fieldNames = getFieldNames(model.getClass());
                 for (String fieldName : fieldNames) {
-                    VALUES(fieldName, "#{" + fieldName + "}");
+                    VALUES(fieldName, "#{" + formatToJavaName(fieldName) + "}");
                 }
             }
 
@@ -51,7 +54,7 @@ public class CommonMapperProvider {
      *
      * @return 生成的SQL
      */
-    public <T> String update(T model, boolean doNull) {
+    public <T> String update(@Param("model") T model, @Param("doNull") boolean doNull) {
         String primary = getPrimaryIndex(model.getClass());
         List<String> fieldNames = getFieldNames(model.getClass());
 
@@ -67,7 +70,7 @@ public class CommonMapperProvider {
                     if (!doNull && null == fieldValue)
                         continue;
 
-                    SET(fieldName + "=#{param1." + fieldName + "}");
+                    SET(fieldName + "=#{param1." + formatToJavaName(fieldName) + "}");
                 }
 
                 WHERE(primary + "=#{param1." + primary + "}");
@@ -86,7 +89,7 @@ public class CommonMapperProvider {
      *
      * @return 生成的SQL
      */
-    public <T> String updateBatch(T setData, T whereData, boolean doNull) {
+    public <T> String updateBatch(@Param("setData") T setData, @Param("whereData") T whereData, @Param("doNull") boolean doNull) {
         Class<?> table = setData.getClass();
         List<String> fieldNames = getFieldNames(table);
 
@@ -99,7 +102,7 @@ public class CommonMapperProvider {
                     if (!doNull && null == fieldValue)
                         continue;
 
-                    SET(fieldName + "=#{param1." + fieldName + "}");
+                    SET(fieldName + "=#{param1." + formatToJavaName(fieldName) + "}");
                 }
 
                 for (String fieldName : fieldNames) {
@@ -107,7 +110,7 @@ public class CommonMapperProvider {
                     if (null == fieldValue)
                         continue;
 
-                    WHERE(fieldName + "=#{param2." + fieldName + "}");
+                    WHERE(fieldName + "=#{param2." + formatToJavaName(fieldName) + "}");
                 }
             }
 
@@ -123,7 +126,7 @@ public class CommonMapperProvider {
      *
      * @return 生成的SQL
      */
-    public <T> String delete(Class<T> table, Serializable id) {
+    public <T> String delete(@Param("table") Class<T> table, @Param("id") Serializable id) {
         return new SQL() {
             {
                 DELETE_FROM(getTableName(table));
@@ -142,7 +145,7 @@ public class CommonMapperProvider {
      *
      * @return 生成的SQL
      */
-    public <T> String deleteBatch(T whereData, boolean doNull) {
+    public <T> String deleteBatch(@Param("whereData") T whereData, @Param("doNull") boolean doNull) {
         return new SQL() {
             {
                 DELETE_FROM(getTableName(whereData.getClass()));
@@ -153,7 +156,7 @@ public class CommonMapperProvider {
                     if (!doNull && null == fieldValue)
                         continue;
 
-                    WHERE(fieldName + "=#{param1" + fieldName + "}");
+                    WHERE(fieldName + "=#{param1" + formatToJavaName(fieldName) + "}");
                 }
 
             }
@@ -170,7 +173,7 @@ public class CommonMapperProvider {
      *
      * @return 生成的SQL
      */
-    public <T> String searchOne(Class<T> table, Serializable id) {
+    public <T> String searchOne(@Param("table") Class<T> table, @Param("id") Serializable id) {
         return new SQL() {
             {
                 SELECT("*");
@@ -190,7 +193,7 @@ public class CommonMapperProvider {
      *
      * @return 生成的SQL
      */
-    public <T> String searchList(T whereData, Order... orders) {
+    public <T> String searchList(@Param("whereData") T whereData, @Param("orders") Order... orders) {
         return new SQL() {
             {
                 SELECT("*");
@@ -200,7 +203,7 @@ public class CommonMapperProvider {
                 for (String fieldName : fieldNames) {
                     Object fieldValue = getFieldValue(whereData, fieldName);
                     if (fieldName != null && fieldValue != null)
-                        WHERE(fieldName + "=#{param1." + fieldName + "}");
+                        WHERE(fieldName + "=#{param1." + formatToJavaName(fieldName) + "}");
                 }
 
                 for (Order order : orders) {
@@ -232,7 +235,7 @@ public class CommonMapperProvider {
      *
      * @return 生成的SQL
      */
-    public <T> String searchAll(Class<T> table, Order... orders) {
+    public <T> String searchAll(@Param("table") Class<T> table, @Param("orders") Order... orders) {
         return new SQL() {
             {
                 SELECT("*");
@@ -256,7 +259,7 @@ public class CommonMapperProvider {
      *
      * @return 生成的SQL
      */
-    public <T> String searchAllByPage(Class<T> table, Page<T> page, Order... orders) {
+    public <T> String searchAllByPage(@Param("table") Class<T> table, @Param("page") Page<T> page, @Param("orders") Order... orders) {
         SQL sql = new SQL() {
             {
                 SELECT("*");
@@ -294,7 +297,7 @@ public class CommonMapperProvider {
                 for (String fieldName : fieldNames) {
                     Object fieldValue = getFieldValue(whereData, fieldName);
                     if (fieldName != null && fieldValue != null)
-                        WHERE(fieldName + "=#{" + fieldName + "}");
+                        WHERE(fieldName + "=#{" + formatToJavaName(fieldName) + "}");
                 }
             }
         }.toString();
@@ -327,7 +330,7 @@ public class CommonMapperProvider {
      *
      * @return 表名
      */
-    private static <T> String getTableName(Class<T> table) {
+    private static <T> String getTableName(@Param("model") Class<T> table) {
         Table t = table.getDeclaredAnnotation(Table.class);
         return isEmpty(t.value()) ? formatToDBName(table.getSimpleName()) : t.value();
     }
@@ -340,7 +343,7 @@ public class CommonMapperProvider {
      *
      * @return 表主键的字段名
      */
-    private static <T> String getPrimaryIndex(Class<T> table) {
+    private static <T> String getPrimaryIndex(@Param("model") Class<T> table) {
         Field[] fields = table.getDeclaredFields();
 
         List<String> list = new ArrayList<>();
@@ -365,7 +368,7 @@ public class CommonMapperProvider {
      * 获取表结构类中所有字段的字段名
      *
      * @param table 表结构类
-     * @param <T> 表结构
+     * @param <T>   表结构
      *
      * @return 所有字段的字段名
      */
@@ -389,9 +392,9 @@ public class CommonMapperProvider {
     /**
      * 获取表结构类中指定字段的值
      *
-     * @param t 表结构类的实例对象
+     * @param t         表结构类的实例对象
      * @param fieldName 表字段名称
-     * @param <T> 表结构
+     * @param <T>       表结构
      *
      * @return 字段值
      */
@@ -418,43 +421,6 @@ public class CommonMapperProvider {
         }
 
         return result;
-    }
-
-    /**
-     * 判断字符串对象是否为空或则长度为零（没有执行trim()方法）
-     *
-     * @param s 字符串对象
-     *
-     * @return 是否为空或空串
-     */
-    private static boolean isEmpty(String s) {
-        return s == null || s.length() == 0;
-    }
-
-    /**
-     * 将Java中属性名、类名的命名规范相应转为数据库中字段名、表名的命名规范
-     *
-     * @param originName 符合Java中属性名、类名的命名规范的字符串
-     *
-     * @return 符合数据库中字段名、表名的命名规范的字符串
-     */
-    private static String formatToDBName(String originName) {
-        if (isEmpty(originName))
-            return null;
-
-        StringBuilder sb = new StringBuilder();
-        char[] chars = originName.toCharArray();
-        for (int i = 0; i < chars.length; i++) {
-            char c = chars[i];
-            if (c >= 65 && c <= 90) {
-                if (i != 0)
-                    sb.append('_');
-                c = (char) (c + 32);
-            }
-            sb.append(c);
-        }
-
-        return sb.toString();
     }
 
 }
