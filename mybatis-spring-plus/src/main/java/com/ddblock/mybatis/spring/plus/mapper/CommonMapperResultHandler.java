@@ -1,15 +1,15 @@
 package com.ddblock.mybatis.spring.plus.mapper;
 
+import com.ddblock.mybatis.spring.plus.util.ClassUtil;
+import com.ddblock.mybatis.spring.plus.util.ExceptionUtil;
 import com.ddblock.mybatis.spring.plus.util.StringUtil;
 import org.apache.ibatis.session.ResultContext;
 import org.apache.ibatis.session.ResultHandler;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * 将数据库中查询出来的Map数据，转换为Model数据
@@ -40,32 +40,24 @@ public class CommonMapperResultHandler<T> implements ResultHandler {
             throw new RuntimeException("反射获取表对应的模型实例失败！", e);
         }
 
-        try {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> map = (Map<String, Object>) resultContext.getResultObject();
+        Map<String, Field> fieldMap = ClassUtil.getAllField(table);
 
-            Method[] methods = table.getMethods();
-            for (Method method : methods) {
-                String methodName = method.getName();
-                if (methodName.indexOf("set") == 0) {
-                    String fieldName = StringUtil.formatToDBName(methodName.substring(3));
-                    if (map.size() > 0 && map.containsKey(fieldName)) {
-                        method.invoke(model, map.get(fieldName));
-                        map.remove(fieldName);
-                    }
-                }
+        @SuppressWarnings("unchecked")
+        Map<String, Object> map = (Map<String, Object>) resultContext.getResultObject();
+        map.forEach((dbFieldName, dbFieldVale) -> {
+            String fieldName = StringUtil.formatToJavaName(dbFieldName);
+            if (!fieldMap.containsKey(fieldName)) {
+                throw ExceptionUtil.wrapException("表[%s]中找不到属性[%s]，不能将DB中字段[%s]映射到表中", table.getName(), fieldName, dbFieldName);
             }
 
-            for (Map.Entry<String, Object> entry : map.entrySet()) {
-                String fieldName = Objects.requireNonNull(StringUtil.formatToJavaName(entry.getKey()));
-
-                Field field = table.getDeclaredField(fieldName);
-                field.setAccessible(true);
-                field.set(model, entry.getValue());
+            Field field = fieldMap.get(fieldName);
+            field.setAccessible(true);
+            try {
+                field.set(model, dbFieldVale);
+            } catch (IllegalAccessException e) {
+                throw ExceptionUtil.wrapException("将表[%s]属性[%s]中set值[%s]失败！", e, table.getName(), fieldName, dbFieldVale);
             }
-        } catch (Exception e) {
-            throw new RuntimeException("将DB中的数据映射到实体类失败！", e);
-        }
+        });
 
         dataList.add(model);
     }

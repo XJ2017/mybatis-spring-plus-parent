@@ -15,12 +15,4 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target({FIELD})
 @Retention(RUNTIME)
 public @interface Field {
-
-    /**
-     * 设置DB中的字段名，默认使用类名（将大写字母转换为”_+字母“）
-     *
-     * @return DB中的表名
-     */
-    String value() default "";
-
 }
