@@ -8,8 +8,8 @@ import com.ddblock.mybatis.spring.plus.model.annotation.Table;
  * Author XiaoJia
  * Date 2019-03-08 22:36
  */
-@Table("user2")
-public class TestUser2 {
+@Table("user")
+public class User {
 
     @Id
     @Field
@@ -17,6 +17,9 @@ public class TestUser2 {
 
     @Field
     private String name;
+
+    @Field
+    private Boolean sex;
 
     public Integer getId() {
         return id;
@@ -34,9 +37,17 @@ public class TestUser2 {
         this.name = name;
     }
 
+    public Boolean getSex() {
+        return sex;
+    }
+
+    public void setSex(Boolean sex) {
+        this.sex = sex;
+    }
+
     @Override
     public String toString() {
-        return "User(id=" + id + ",name=" + name + ")";
+        return "User(id=" + id + ",name=" + name + ",sex=" + sex + ")";
     }
 
 }

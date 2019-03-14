@@ -1,10 +1,15 @@
 package com.ddblock.mybatis.spring.boot;
 
 import com.ddblock.mybatis.spring.plus.CommonDao;
-import com.ddblock.mybatis.spring.plus.mapper.MapperFactoryBeanEx;
-import org.apache.ibatis.session.SqlSessionFactory;
+import com.ddblock.mybatis.spring.plus.CommonDaoProxy;
+import com.ddblock.mybatis.spring.plus.mapper.CommonMapper;
+import org.apache.ibatis.session.SqlSession;
+import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 抽象DAO对象生成工厂
@@ -12,17 +17,27 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
  * Author XiaoJia
  * Date 2019-03-12 8:58
  */
-@AutoConfigureAfter(SqlSessionFactory.class)
+@AutoConfigureAfter(SqlSessionTemplate.class)
 public abstract class AbstractCommonDaoFactory {
 
-    @Autowired
-    private SqlSessionFactory sqlSessionFactory;
+    private static final Map<Class<?>, CommonDaoProxy> cacheMap = new ConcurrentHashMap<>();
 
-    protected  <T> CommonDao<T> addDaoBean(Class<T> clazz) {
-        MapperFactoryBeanEx<T> mapperFactoryBean = new MapperFactoryBeanEx<>(clazz);
-        mapperFactoryBean.setSqlSessionFactory(sqlSessionFactory);
-        mapperFactoryBean.afterPropertiesSet();
-        return mapperFactoryBean.getObject();
+    @Autowired
+    private SqlSession sqlSession;
+
+    protected <T> CommonDao<T> addDaoBean(Class<T> table) {
+        CommonDaoProxy<T> dao;
+        if (!cacheMap.containsKey(table)) {
+            dao = new CommonDaoProxy<>(table);
+            cacheMap.put(table, dao);
+        } else {
+            //noinspection unchecked
+            dao = cacheMap.get(table);
+        }
+
+        CommonMapper mapper = sqlSession.getMapper(CommonMapper.class);
+        dao.setMapper(mapper);
+        return dao;
     }
 
 }

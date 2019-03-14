@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50712
 File Encoding         : 65001
 
-Date: 2019-03-11 22:54:24
+Date: 2019-03-14 12:54:32
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -20,9 +20,10 @@ SET FOREIGN_KEY_CHECKS=0;
 -- ----------------------------
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
-  `id` int(11) DEFAULT NULL COMMENT '用户ID',
+  `id` int(11) NOT NULL COMMENT '用户ID',
   `name` varchar(255) DEFAULT NULL COMMENT '用户名称',
-  `sex` bit(1) DEFAULT NULL COMMENT '用户性别'
+  `sex` bit(1) DEFAULT NULL COMMENT '用户性别',
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户表';
 
 -- ----------------------------
@@ -30,6 +31,7 @@ CREATE TABLE `user` (
 -- ----------------------------
 DROP TABLE IF EXISTS `user2`;
 CREATE TABLE `user2` (
-  `id` int(11) DEFAULT NULL COMMENT '用户ID2',
-  `name` varchar(255) DEFAULT NULL COMMENT '用户名称2'
+  `id` int(11) NOT NULL COMMENT '用户ID2',
+  `name` varchar(255) DEFAULT NULL COMMENT '用户名称2',
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户表2';

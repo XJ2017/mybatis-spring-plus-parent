@@ -1,8 +1,8 @@
 package com.ddblock.mybatis.spring.boot.dao;
 
 import com.ddblock.mybatis.spring.boot.AbstractCommonDaoFactory;
-import com.ddblock.mybatis.spring.boot.bean.TestUser;
-import com.ddblock.mybatis.spring.boot.bean.TestUser2;
+import com.ddblock.mybatis.spring.boot.bean.User;
+import com.ddblock.mybatis.spring.boot.bean.User2;
 import com.ddblock.mybatis.spring.plus.CommonDao;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,13 +17,13 @@ import org.springframework.context.annotation.Configuration;
 public class CommonDaoFactory extends AbstractCommonDaoFactory {
 
     @Bean
-    protected CommonDao<TestUser> addDaoBeanTestUser() {
-        return addDaoBean(TestUser.class);
+    protected CommonDao<User> addDaoBeanTestUser() {
+        return addDaoBean(User.class);
     }
 
     @Bean
-    protected CommonDao<TestUser2> addDaoBeanTestUser2() {
-        return addDaoBean(TestUser2.class);
+    protected CommonDao<User2> addDaoBeanTestUser2() {
+        return addDaoBean(User2.class);
     }
 
 }
