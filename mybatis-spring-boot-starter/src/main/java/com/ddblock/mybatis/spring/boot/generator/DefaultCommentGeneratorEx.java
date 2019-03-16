@@ -41,7 +41,7 @@ public class DefaultCommentGeneratorEx extends DefaultCommentGenerator {
 
         topLevelClass.addJavaDocLine("/**");
         topLevelClass.addJavaDocLine(" * " + remarks);
-        topLevelClass.addJavaDocLine(" * Date " + dateFormatter.format(new Date()));
+        topLevelClass.addJavaDocLine(" * @since " + dateFormatter.format(new Date()));
         topLevelClass.addJavaDocLine(" */");
 
         // 添加注解所需要的类
