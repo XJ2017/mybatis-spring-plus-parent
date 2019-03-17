@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -124,12 +126,38 @@ public class UserServiceTest extends AbstractJUnit4SpringContextTests {
         addTestData();
         addTestData();
 
-        userService.searchListBySQL(new SQL() {
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("id", 1);
+        paramMap.put("begin", 0);
+        paramMap.put("end", 10);
+        userService.searchListBySQL(paramMap, new SQL() {
             {
                 SELECT("*");
                 FROM("user");
-                WHERE("id <> 1");
-                ORDER_BY("id desc limit 0, 10");
+                WHERE("id <> #{paramMap.id}");
+                ORDER_BY("id desc limit #{paramMap.begin}, #{paramMap.end}");
+            }
+        });
+    }
+
+    @Test
+    public void testSearchPageBySQL() {
+        addTestData();
+        addTestData();
+        addTestData();
+
+        Page<User> page = new Page<>();
+        page.setPageNo(1);
+        page.setPageSize(10);
+
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("id", 1);
+        userService.searchPageBySQL(page, paramMap, new SQL() {
+            {
+                SELECT("*");
+                FROM("user");
+                WHERE("id <> #{paramMap.id}");
+                ORDER_BY("id desc");
             }
         });
     }

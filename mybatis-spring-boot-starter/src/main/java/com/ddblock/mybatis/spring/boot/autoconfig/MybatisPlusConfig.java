@@ -1,5 +1,6 @@
 package com.ddblock.mybatis.spring.boot.autoconfig;
 
+import com.ddblock.mybatis.spring.plus.interceptor.PageInterceptor;
 import com.ddblock.mybatis.spring.plus.mapper.CommonMapper;
 import com.ddblock.mybatis.spring.plus.mapper.CommonMapperTypeHandler;
 import org.apache.ibatis.session.Configuration;
@@ -55,6 +56,9 @@ public class MybatisPlusConfig implements TransactionManagementConfigurer {
 
         // 添加Mapper
         configuration.addMapper(CommonMapper.class);
+
+        // 添加拦截器
+        configuration.addInterceptor(new PageInterceptor());
 
         // 设置日志实现
 //        configuration.setLogImpl(Slf4jImpl.class);

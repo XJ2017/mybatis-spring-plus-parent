@@ -9,8 +9,8 @@ import java.util.*;
 /**
  * 将不同类型的数据都包装成为Map，由通用处理器解析成为具体对象
  *
- * Author XiaoJia
- * Date 2019-03-06 17:59
+ * @author XiaoJia
+ * @since 2019-03-06 17:59
  */
 @MappedTypes(CommonMapperResultType.class)
 public class CommonMapperTypeHandler extends BaseTypeHandler<Map<String, Object>> {

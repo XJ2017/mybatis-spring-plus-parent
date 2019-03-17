@@ -1,18 +1,20 @@
 package com.ddblock.mybatis.spring.plus;
 
-import com.ddblock.mybatis.spring.plus.bean.User;
-import com.ddblock.mybatis.spring.plus.bean.User2;
-import com.ddblock.mybatis.spring.plus.mapper.support.Order;
-import com.ddblock.mybatis.spring.plus.mapper.support.Page;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
 import org.apache.ibatis.jdbc.SQL;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.List;
-import java.util.Random;
+import com.ddblock.mybatis.spring.plus.bean.User;
+import com.ddblock.mybatis.spring.plus.bean.User2;
+import com.ddblock.mybatis.spring.plus.mapper.support.Order;
+import com.ddblock.mybatis.spring.plus.mapper.support.Page;
 
 /**
  * 测试通用DAO
@@ -160,12 +162,40 @@ public class CommonDaoTest {
 
         CommonDao<User> userDao = CommonDaoFactory.getCommonDao(User.class);
 
-        List<User> userList = userDao.searchListBySQL(new SQL() {
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("id", 1);
+        paramMap.put("begin", 0);
+        paramMap.put("end", 10);
+        List<User> userList = userDao.searchListBySQL(paramMap, new SQL() {
             {
                 SELECT("*");
                 FROM("user");
-                WHERE("id <> 1");
-                ORDER_BY("id desc limit 0, 10");
+                WHERE("id <> #{paramMap.id}");
+                ORDER_BY("id desc limit #{paramMap.begin}, #{paramMap.end}");
+            }
+        });
+    }
+
+    @Test
+    public void testSearchPageBySQL() {
+        addTestData();
+        addTestData();
+        addTestData();
+
+        CommonDao<User> userDao = CommonDaoFactory.getCommonDao(User.class);
+
+        Page<User> page = new Page<>();
+        page.setPageNo(1);
+        page.setPageSize(10);
+
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("id", 1);
+        userDao.searchPageBySQL(page, paramMap, new SQL() {
+            {
+                SELECT("*");
+                FROM("user");
+                WHERE("id <> #{paramMap.id}");
+                ORDER_BY("id desc");
             }
         });
     }

@@ -1,20 +1,22 @@
 package com.ddblock.mybatis.spring.plus;
 
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.jdbc.SQL;
+
 import com.ddblock.mybatis.spring.plus.mapper.CommonMapper;
 import com.ddblock.mybatis.spring.plus.mapper.CommonMapperResultHandler;
 import com.ddblock.mybatis.spring.plus.mapper.support.Order;
 import com.ddblock.mybatis.spring.plus.mapper.support.Page;
-import org.apache.ibatis.jdbc.SQL;
-
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * 通用DAO的代理实现类
  *
- * Author XiaoJia
- * Date 2019-03-07 8:13
+ * @author XiaoJia
+ * @since 2019-03-07 8:13
  */
 public class CommonDaoProxy<T> implements CommonDao<T> {
 
@@ -73,10 +75,16 @@ public class CommonDaoProxy<T> implements CommonDao<T> {
     }
 
     @Override
-    public List<T> searchListBySQL(SQL sql) {
+    public List<T> searchListBySQL(Map<String, Object> paramMap, SQL sql) {
         CommonMapperResultHandler<T> resultHandler = new CommonMapperResultHandler<>(table);
-        mapper.searchListBySQL(sql, resultHandler);
+        mapper.searchListBySQL(paramMap, sql, resultHandler);
         return resultHandler.getDataList();
+    }
+
+    @Override
+    public void searchPageBySQL(Page<T> page, Map<String, Object> paramMap, SQL sql) {
+        CommonMapperResultHandler<T> resultHandler = new CommonMapperResultHandler<>(table, page);
+        mapper.searchListBySQL(paramMap, sql, resultHandler);
     }
 
     @Override
@@ -87,11 +95,9 @@ public class CommonDaoProxy<T> implements CommonDao<T> {
     }
 
     @Override
-    public Page<T> searchAllByPage(Page<T> page, Order... orders) {
-        CommonMapperResultHandler<T> resultHandler = new CommonMapperResultHandler<>(table);
-        mapper.searchAllByPage(table, page, resultHandler, orders);
-        page.setResults(resultHandler.getDataList());
-        return page;
+    public void searchAllByPage(Page<T> page, Order... orders) {
+        CommonMapperResultHandler<T> resultHandler = new CommonMapperResultHandler<>(table, page);
+        mapper.searchAllByPage(table, resultHandler, orders);
     }
 
     @Override

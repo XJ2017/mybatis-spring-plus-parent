@@ -6,12 +6,13 @@ import org.apache.ibatis.jdbc.SQL;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 通用DAO
  *
- * Author XiaoJia
- * Date 2019-03-07 8:12
+ * @author XiaoJia
+ * @since 2019-03-07 8:12
  *
  * @param <T> 表结构类
  */
@@ -88,11 +89,21 @@ public interface CommonDao<T> {
     /**
      * 根据自定义SQL，查询符合条件的记录集合
      *
+     * @param paramMap SQL中的参数键值对
      * @param sql 查询SQL
      *
      * @return 返回的变更集合
      */
-    List<T> searchListBySQL(SQL sql);
+    List<T> searchListBySQL(Map<String, Object> paramMap, SQL sql);
+
+    /**
+     * 根据自定义SQL，查询符合条件的记录集合
+     *
+     * @param page     分页信息
+     * @param paramMap SQL中的参数键值对
+     * @param sql 查询SQL
+     */
+    void searchPageBySQL(Page<T> page, Map<String, Object> paramMap, SQL sql);
 
     /**
      * 按照排序规则将表中数据全部查询出来
@@ -108,10 +119,8 @@ public interface CommonDao<T> {
      *
      * @param page   分页信息
      * @param orders 培训规则
-     *
-     * @return 返回的表分页记录
      */
-    Page<T> searchAllByPage(Page<T> page, Order... orders);
+    void searchAllByPage(Page<T> page, Order... orders);
 
     /**
      * 获取符合条件的总记录数

@@ -24,6 +24,9 @@
         <typeHandler handler="com.ddblock.mybatis.spring.plus.mapper.CommonMapperTypeHandler" javaType="com.ddblock.mybatis.spring.plus.mapper.CommonMapperResultType"/>
     </typeHandlers>
 
+    <plugins>
+        <plugin interceptor="com.ddblock.mybatis.spring.plus.interceptor.PageInterceptor"/>
+    </plugins>
 
 
     <environments default="development">

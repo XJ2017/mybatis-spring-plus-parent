@@ -3,6 +3,7 @@ package com.ddblock.mybatis.spring.boot;
 import com.ddblock.mybatis.spring.boot.bean.User2;
 import com.ddblock.mybatis.spring.boot.bean.User;
 import com.ddblock.mybatis.spring.plus.CommonDao;
+import com.ddblock.mybatis.spring.plus.CommonDaoFactory;
 import com.ddblock.mybatis.spring.plus.mapper.support.Order;
 import com.ddblock.mybatis.spring.plus.mapper.support.Page;
 import org.apache.ibatis.jdbc.SQL;
@@ -16,6 +17,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -118,12 +121,38 @@ public class CommonDaoTest extends AbstractJUnit4SpringContextTests {
         addTestData();
         addTestData();
 
-        userDao.searchListBySQL(new SQL() {
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("id", 1);
+        paramMap.put("begin", 0);
+        paramMap.put("end", 10);
+        userDao.searchListBySQL(paramMap, new SQL() {
             {
                 SELECT("*");
                 FROM("user");
-                WHERE("id <> 1");
-                ORDER_BY("id desc limit 0, 10");
+                WHERE("id <> #{paramMap.id}");
+                ORDER_BY("id desc limit #{paramMap.begin}, #{paramMap.end}");
+            }
+        });
+    }
+
+    @Test
+    public void testSearchPageBySQL() {
+        addTestData();
+        addTestData();
+        addTestData();
+
+        Page<User> page = new Page<>();
+        page.setPageNo(1);
+        page.setPageSize(10);
+
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("id", 1);
+        userDao.searchPageBySQL(page, paramMap, new SQL() {
+            {
+                SELECT("*");
+                FROM("user");
+                WHERE("id <> #{paramMap.id}");
+                ORDER_BY("id desc");
             }
         });
     }
@@ -182,7 +211,7 @@ public class CommonDaoTest extends AbstractJUnit4SpringContextTests {
 
     private User addTestData() {
         User addUser = new User();
-        addUser.setId(new Random().nextInt(100));
+        addUser.setId(new Random().nextInt(1000));
         addUser.setName("name" + addUser.getId());
 
         boolean success = userDao.add(addUser) > 0;

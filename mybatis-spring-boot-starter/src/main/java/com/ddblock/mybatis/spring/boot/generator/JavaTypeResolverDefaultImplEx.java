@@ -8,7 +8,7 @@ import java.sql.Types;
 /**
  * 将DB中字段类型转换为Java中的字段类型
  *
- * @author XiaoJia2
+ * @author XiaoJia
  * @since 2019-03-16 16:49
  */
 public class JavaTypeResolverDefaultImplEx extends JavaTypeResolverDefaultImpl {

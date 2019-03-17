@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 基础服务的实现类
@@ -59,8 +60,13 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
     }
 
     @Override
-    public List<T> searchListBySQL(SQL sql) {
-        return commonDao.searchListBySQL(sql);
+    public List<T> searchListBySQL(Map<String, Object> paramMap, SQL sql) {
+        return commonDao.searchListBySQL(paramMap, sql);
+    }
+
+    @Override
+    public void searchPageBySQL(Page<T> page, Map<String, Object> paramMap, SQL sql) {
+        commonDao.searchPageBySQL(page, paramMap, sql);
     }
 
     @Override
@@ -69,8 +75,8 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
     }
 
     @Override
-    public Page<T> searchAllByPage(Page<T> page, Order... orders) {
-        return commonDao.searchAllByPage(page, orders);
+    public void searchAllByPage(Page<T> page, Order... orders) {
+        commonDao.searchAllByPage(page, orders);
     }
 
     @Override

@@ -14,8 +14,8 @@ import java.io.InputStream;
 /**
  * 获取通用处理DAO的工厂类（spring boot的模式下不使用）
  *
- * Author XiaoJia
- * Date 2019-03-07 8:13
+ * @author XiaoJia
+ * @since 2019-03-07 8:13
  */
 public class CommonDaoFactory {
     private static final Logger LOGGER = LogManager.getLogger(CommonDaoFactory.class);
