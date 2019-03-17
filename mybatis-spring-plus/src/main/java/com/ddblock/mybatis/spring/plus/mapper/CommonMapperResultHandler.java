@@ -33,12 +33,14 @@ public class CommonMapperResultHandler<T> implements ResultHandler {
     }
 
     public CommonMapperResultHandler(Class<T> table) {
-        this(table, null);
+        this.table = table;
     }
 
     public CommonMapperResultHandler(Class<T> table, Page<T> page) {
         this.table = table;
         this.page = page;
+        // 填充Page中存放数据的容器
+        this.page.setResults(dataList);
     }
 
     @Override
@@ -75,9 +77,6 @@ public class CommonMapperResultHandler<T> implements ResultHandler {
     }
 
     public Page<T> getPage() {
-        if (page != null) {
-            page.setResults(dataList);
-        }
         return page;
     }
 
