@@ -5,7 +5,9 @@ import static org.mybatis.generator.internal.util.StringUtility.stringHasValue;
 import static org.mybatis.generator.internal.util.messages.Messages.getString;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.mybatis.generator.api.CommentGenerator;
 import org.mybatis.generator.api.FullyQualifiedTable;
@@ -44,17 +46,11 @@ public class ExampleGeneratorEx extends AbstractJavaGenerator {
         topLevelClass.setVisibility(JavaVisibility.PUBLIC);
         commentGenerator.addJavaFileComment(topLevelClass);
 
-        // 获取基类全类路径名
-        String exampleRootClass = introspectedTable.getTableConfiguration().getProperty("exampleRootClass");
-        if (StringUtil.isEmpty(exampleRootClass)) {
-            exampleRootClass = BaseExample.class.getName();
-        }
-        FullyQualifiedJavaType exampleRoot = new FullyQualifiedJavaType(exampleRootClass);
-
         // 添加基类
+        FullyQualifiedJavaType exampleRoot = new FullyQualifiedJavaType(BaseExample.class.getName());
         exampleRoot.addTypeArgument(new FullyQualifiedJavaType(type.getShortName() + "." + INNER_CLASS_NAME));
         topLevelClass.setSuperClass(exampleRoot);
-        topLevelClass.addImportedType(exampleRootClass);
+        topLevelClass.addImportedType(BaseExample.class.getName());
 
         // 添加实现基类的抽象方法
         Method method = new Method();
@@ -79,12 +75,33 @@ public class ExampleGeneratorEx extends AbstractJavaGenerator {
     private InnerClass getGeneratedCriteriaInnerClass(TopLevelClass topLevelClass) {
         Field field;
 
+        // 获取基类全类路径名与基类已存在的待生成的方法
+        Set<String> columnNameSet = new HashSet<>();
+        String criteriaRootClass = introspectedTable.getTableConfiguration().getProperty("criteriaRootClass");
+        if (StringUtil.isEmpty(criteriaRootClass)) {
+            criteriaRootClass = BaseCriteria.class.getName();
+        } else {
+            try {
+                Class<?> baseCriteria = Class.forName(criteriaRootClass);
+                for (java.lang.reflect.Method method : baseCriteria.getMethods()) {
+                    String methodName = method.getName();
+                    if (methodName.matches("^and\\w*IsNull$")) {
+                        String columnName = methodName.substring(3, methodName.length() - 6);
+                        columnNameSet.add(columnName.toLowerCase());
+                    }
+                }
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException("加载类[" + criteriaRootClass + "]失败！", e);
+            }
+        }
+        FullyQualifiedJavaType criteriaRoot = new FullyQualifiedJavaType(criteriaRootClass);
+
         InnerClass answer = new InnerClass(new FullyQualifiedJavaType(INNER_CLASS_NAME));
         answer.setVisibility(JavaVisibility.PUBLIC);
         answer.setStatic(true);
         // 添加基类并导包
-        answer.setSuperClass(BaseCriteria.class.getSimpleName());
-        topLevelClass.addImportedType(BaseCriteria.class.getName());
+        answer.setSuperClass(criteriaRoot.getShortNameWithoutTypeArguments());
+        topLevelClass.addImportedType(criteriaRoot);
         context.getCommentGenerator().addClassComment(answer, introspectedTable);
 
         // now we need to generate the methods that will be used in the SqlMap
@@ -93,6 +110,11 @@ public class ExampleGeneratorEx extends AbstractJavaGenerator {
 
         for (IntrospectedColumn introspectedColumn : introspectedTable.getNonBLOBColumns()) {
             topLevelClass.addImportedType(introspectedColumn.getFullyQualifiedJavaType());
+
+            // 过滤基类已有的方法
+            if (columnNameSet.contains(introspectedColumn.getJavaProperty().toLowerCase())) {
+                continue;
+            }
 
             // here we need to add the individual methods for setting the
             // conditions for a field

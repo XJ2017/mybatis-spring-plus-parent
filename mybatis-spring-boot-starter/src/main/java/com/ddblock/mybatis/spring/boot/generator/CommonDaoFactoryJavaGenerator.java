@@ -80,7 +80,7 @@ public class CommonDaoFactoryJavaGenerator extends AbstractJavaGenerator {
         topLevelClass.addJavaDocLine("/**");
         topLevelClass.addJavaDocLine(" * 所有Model DAO的工厂类。通过Spring提供的@Bean注解将DAO对象注入到Spring容器中");
         topLevelClass.addJavaDocLine(" * ");
-        topLevelClass.addJavaDocLine(" * Date " + new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()));
+        topLevelClass.addJavaDocLine(" * @since " + new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()));
         topLevelClass.addJavaDocLine(" */");
 
         return topLevelClass;

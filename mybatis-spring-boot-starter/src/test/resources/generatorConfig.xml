@@ -22,7 +22,7 @@
             如果直接使用 % 则表示对所有的数据表都生成
          -->
         <table tableName="%">
-            <property name="exampleRootClass" value="com.ddblock.mybatis.spring.boot.generator.MyBaseExample" />
+            <property name="criteriaRootClass" value="com.ddblock.mybatis.spring.boot.generator.MyBaseCriteria" />
             <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
         </table>
     </context>
