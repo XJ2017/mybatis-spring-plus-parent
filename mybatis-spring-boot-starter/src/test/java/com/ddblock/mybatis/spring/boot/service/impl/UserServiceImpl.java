@@ -1,6 +1,7 @@
 package com.ddblock.mybatis.spring.boot.service.impl;
 
-import com.ddblock.mybatis.spring.boot.bean.User;
+import com.ddblock.mybatis.spring.boot.model.User;
+import com.ddblock.mybatis.spring.boot.example.UserExample;
 import com.ddblock.mybatis.spring.boot.service.UserService;
 import com.ddblock.mybatis.spring.boot.service.base.BaseServiceImpl;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("userService")
 @Transactional(propagation = Propagation.REQUIRED, rollbackFor = RuntimeException.class)
-public class UserServiceImpl extends BaseServiceImpl<User> implements UserService {
+public class UserServiceImpl extends BaseServiceImpl<User, UserExample> implements UserService {
     @Override
     public void insertAndDelete() {
         User user = new User();

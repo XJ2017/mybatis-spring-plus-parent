@@ -1,91 +1,83 @@
 package com.ddblock.mybatis.spring.boot.service.base;
 
-import com.ddblock.mybatis.spring.plus.CommonDao;
-import com.ddblock.mybatis.spring.plus.mapper.support.Order;
-import com.ddblock.mybatis.spring.plus.mapper.support.Page;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ibatis.jdbc.SQL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
+import com.ddblock.mybatis.spring.plus.CommonDao;
+import com.ddblock.mybatis.spring.plus.mapper.support.BaseExample;
+import com.ddblock.mybatis.spring.plus.mapper.support.Order;
+import com.ddblock.mybatis.spring.plus.mapper.support.Page;
 
 /**
  * 基础服务的实现类
  *
- * Author XiaoJia
- * Date 2019-03-12 15:01
+ * Author XiaoJia Date 2019-03-12 15:01
  */
 @Transactional(propagation = Propagation.REQUIRED, rollbackFor = RuntimeException.class)
-public abstract class BaseServiceImpl<T> implements BaseService<T> {
+public abstract class BaseServiceImpl<M, E extends BaseExample> implements BaseService<M, E> {
 
     @Autowired
-    protected CommonDao<T> commonDao;
+    protected CommonDao<M, E> commonDao;
 
     @Override
-    public boolean add(T model) {
-        return commonDao.add(model) > 0;
+    public int add(M model) {
+        return commonDao.add(model);
     }
 
     @Override
-    public boolean update(T model, boolean doNull) {
-        return commonDao.update(model, doNull) > 0;
+    public int update(M model, boolean doNull) {
+        return commonDao.update(model, doNull);
     }
 
     @Override
-    public boolean updateBatch(T setData, T whereData, boolean doNull) {
-        return commonDao.updateBatch(setData, whereData, doNull) > 0;
+    public int updateBatch(M setData, E example, boolean doNull) {
+        return commonDao.updateBatch(setData, example, doNull);
     }
 
     @Override
-    public boolean delete(Serializable id) {
-        return commonDao.delete(id) > 0;
+    public int delete(Serializable id) {
+        return commonDao.delete(id);
     }
 
     @Override
-    public boolean deleteBatch(T whereData, boolean doNull) {
-        return commonDao.deleteBatch(whereData, doNull) > 0;
+    public int deleteBatch(E example) {
+        return commonDao.deleteBatch(example);
     }
 
     @Override
-    public T searchOne(Serializable id) {
+    public M searchOne(Serializable id) {
         return commonDao.searchOne(id);
     }
 
     @Override
-    public List<T> searchList(T whereData, Order... orders) {
-        return commonDao.searchList(whereData, orders);
+    public List<M> searchList(E example, Order... orders) {
+        return commonDao.searchList(example, orders);
     }
 
     @Override
-    public List<T> searchListBySQL(Map<String, Object> paramMap, SQL sql) {
+    public List<M> searchListBySQL(Map<String, Object> paramMap, SQL sql) {
         return commonDao.searchListBySQL(paramMap, sql);
     }
 
     @Override
-    public void searchPageBySQL(Page<T> page, Map<String, Object> paramMap, SQL sql) {
+    public void searchPage(Page<M> page, E example, Order... orders) {
+        commonDao.searchPage(page, example, orders);
+    }
+
+    @Override
+    public void searchPageBySQL(Page<M> page, Map<String, Object> paramMap, SQL sql) {
         commonDao.searchPageBySQL(page, paramMap, sql);
     }
 
     @Override
-    public List<T> searchAll(Order... orders) {
-        return commonDao.searchAll(orders);
+    public long searchCount(E example) {
+        return commonDao.searchCount(example);
     }
 
-    @Override
-    public void searchAllByPage(Page<T> page, Order... orders) {
-        commonDao.searchAllByPage(page, orders);
-    }
-
-    @Override
-    public long searchCount(T whereData) {
-        return commonDao.searchCount(whereData);
-    }
-
-    @Override
-    public long searchAllCount() {
-        return commonDao.searchAllCount();
-    }
 }

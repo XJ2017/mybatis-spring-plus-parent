@@ -1,6 +1,8 @@
 package com.ddblock.mybatis.spring.plus;
 
-import com.ddblock.mybatis.spring.plus.mapper.CommonMapper;
+import java.io.IOException;
+import java.io.InputStream;
+
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -8,8 +10,8 @@ import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
-import java.io.InputStream;
+import com.ddblock.mybatis.spring.plus.mapper.CommonMapper;
+import com.ddblock.mybatis.spring.plus.mapper.support.BaseExample;
 
 /**
  * 获取通用处理DAO的工厂类（spring boot的模式下不使用）
@@ -21,9 +23,10 @@ public class CommonDaoFactory {
     private static final Logger LOGGER = LogManager.getLogger(CommonDaoFactory.class);
 
     private static SqlSessionFactory sqlSessionFactory;
-    private static final ThreadLocal<SqlSession> sqlSessionTL = new ThreadLocal<SqlSession>() { // TODO 不应该这么操作
+    private static final ThreadLocal<SqlSession> SQL_SESSION_TL = new ThreadLocal<SqlSession>() {
         @Override
         protected SqlSession initialValue() {
+            // TODO 不应该这么操作
             return sqlSessionFactory.openSession();
         }
     };
@@ -42,14 +45,16 @@ public class CommonDaoFactory {
     /**
      * 通过操作的表结构类获取指定类型DAO对象
      *
-     * @param table 表结构类
-     * @param <T> 表结构
+     * @param table
+     *            表结构类
+     * @param <T>
+     *            表结构
      *
      * @return 指定类型DAO对象
      */
-    public static <T> CommonDao<T> getCommonDao(Class<T> table) {
-        CommonMapper commonMapper = sqlSessionTL.get().getMapper(CommonMapper.class);
-        CommonDaoProxy<T> commonDaoImpl = new CommonDaoProxy<>(table);
+    public static <T, E extends BaseExample> CommonDao<T, E> getCommonDao(Class<T> table, Class<E> example) {
+        CommonMapper commonMapper = SQL_SESSION_TL.get().getMapper(CommonMapper.class);
+        CommonDaoProxy<T, E> commonDaoImpl = new CommonDaoProxy<>(table, example);
         commonDaoImpl.setMapper(commonMapper);
         return commonDaoImpl;
     }
@@ -57,13 +62,14 @@ public class CommonDaoFactory {
     /**
      * 使用单独的SqlSession处理业务操作
      *
-     * @param runnable 业务操作
+     * @param runnable
+     *            业务操作
      */
     public static void withTransaction(Runnable runnable) {
         SqlSession sqlSession = sqlSessionFactory.openSession();
-        SqlSession oldSqlSession = sqlSessionTL.get();
+        SqlSession oldSqlSession = SQL_SESSION_TL.get();
         try {
-            sqlSessionTL.set(sqlSession);
+            SQL_SESSION_TL.set(sqlSession);
 
             // 处理业务
             runnable.run();
@@ -84,7 +90,7 @@ public class CommonDaoFactory {
                 LOGGER.error("关闭sqlSession失败！", t);
             }
 
-            sqlSessionTL.set(oldSqlSession);
+            SQL_SESSION_TL.set(oldSqlSession);
         }
     }
 

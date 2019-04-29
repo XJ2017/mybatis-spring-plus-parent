@@ -9,6 +9,7 @@ import org.apache.ibatis.jdbc.SQL;
 
 import com.ddblock.mybatis.spring.plus.mapper.CommonMapper;
 import com.ddblock.mybatis.spring.plus.mapper.CommonMapperResultHandler;
+import com.ddblock.mybatis.spring.plus.mapper.support.BaseExample;
 import com.ddblock.mybatis.spring.plus.mapper.support.Order;
 import com.ddblock.mybatis.spring.plus.mapper.support.Page;
 
@@ -18,13 +19,16 @@ import com.ddblock.mybatis.spring.plus.mapper.support.Page;
  * @author XiaoJia
  * @since 2019-03-07 8:13
  */
-public class CommonDaoProxy<T> implements CommonDao<T> {
+public class CommonDaoProxy<M, E extends BaseExample> implements CommonDao<M, E> {
 
-    private Class<T> table;
+    private Class<M> table;
+    @SuppressWarnings("FieldCanBeLocal")
+    private Class<E> example;
     private CommonMapper mapper;
 
-    public CommonDaoProxy(Class<T> table) {
+    public CommonDaoProxy(Class<M> table, Class<E> example) {
         this.table = table;
+        this.example = example;
     }
 
     public void setMapper(CommonMapper mapper) {
@@ -32,18 +36,18 @@ public class CommonDaoProxy<T> implements CommonDao<T> {
     }
 
     @Override
-    public int add(T model) {
+    public int add(M model) {
         return mapper.add(model);
     }
 
     @Override
-    public int update(T model, boolean doNull) {
+    public int update(M model, boolean doNull) {
         return mapper.update(model, doNull);
     }
 
     @Override
-    public int updateBatch(T setData, T whereData, boolean doNull) {
-        return mapper.updateBatch(setData, whereData, doNull);
+    public int updateBatch(M setData, E example, boolean doNull) {
+        return mapper.updateBatch(setData, example, doNull);
     }
 
     @Override
@@ -52,15 +56,15 @@ public class CommonDaoProxy<T> implements CommonDao<T> {
     }
 
     @Override
-    public int deleteBatch(T model, boolean doNull) {
-        return mapper.deleteBatch(model, doNull);
+    public int deleteBatch(E example) {
+        return mapper.deleteBatch(table, example);
     }
 
     @Override
-    public T searchOne(Serializable id) {
-        CommonMapperResultHandler<T> resultHandler = new CommonMapperResultHandler<>(table);
+    public M searchOne(Serializable id) {
+        CommonMapperResultHandler<M> resultHandler = new CommonMapperResultHandler<>(table);
         mapper.searchOne(table, id, resultHandler);
-        List<T> dataList = resultHandler.getDataList();
+        List<M> dataList = resultHandler.getDataList();
         if (dataList.size() > 1) {
             throw new RuntimeException("根据主键：" + id + "，查询到多条数据：" + Arrays.toString(dataList.toArray()));
         }
@@ -68,45 +72,34 @@ public class CommonDaoProxy<T> implements CommonDao<T> {
     }
 
     @Override
-    public List<T> searchList(T whereData, Order... orders) {
-        CommonMapperResultHandler<T> resultHandler = new CommonMapperResultHandler<>(table);
-        mapper.searchList(whereData, resultHandler, orders);
+    public List<M> searchList(E example, Order... orders) {
+        CommonMapperResultHandler<M> resultHandler = new CommonMapperResultHandler<>(table);
+        mapper.searchList(table, example, resultHandler, orders);
         return resultHandler.getDataList();
     }
 
     @Override
-    public List<T> searchListBySQL(Map<String, Object> paramMap, SQL sql) {
-        CommonMapperResultHandler<T> resultHandler = new CommonMapperResultHandler<>(table);
+    public List<M> searchListBySQL(Map<String, Object> paramMap, SQL sql) {
+        CommonMapperResultHandler<M> resultHandler = new CommonMapperResultHandler<>(table);
         mapper.searchListBySQL(paramMap, sql, resultHandler);
         return resultHandler.getDataList();
     }
 
     @Override
-    public void searchPageBySQL(Page<T> page, Map<String, Object> paramMap, SQL sql) {
-        CommonMapperResultHandler<T> resultHandler = new CommonMapperResultHandler<>(table, page);
+    public void searchPage(Page<M> page, E example, Order... orders) {
+        CommonMapperResultHandler<M> resultHandler = new CommonMapperResultHandler<>(table, page);
+        mapper.searchPage(table, example, resultHandler, orders);
+    }
+
+    @Override
+    public void searchPageBySQL(Page<M> page, Map<String, Object> paramMap, SQL sql) {
+        CommonMapperResultHandler<M> resultHandler = new CommonMapperResultHandler<>(table, page);
         mapper.searchListBySQL(paramMap, sql, resultHandler);
     }
 
     @Override
-    public List<T> searchAll(Order... orders) {
-        CommonMapperResultHandler<T> resultHandler = new CommonMapperResultHandler<>(table);
-        mapper.searchAll(table, resultHandler, orders);
-        return resultHandler.getDataList();
+    public long searchCount(E example) {
+        return mapper.searchCount(table, example);
     }
 
-    @Override
-    public void searchAllByPage(Page<T> page, Order... orders) {
-        CommonMapperResultHandler<T> resultHandler = new CommonMapperResultHandler<>(table, page);
-        mapper.searchAllByPage(table, resultHandler, orders);
-    }
-
-    @Override
-    public long searchCount(T whereData) {
-        return mapper.searchCount(whereData);
-    }
-
-    @Override
-    public long searchAllCount() {
-        return mapper.searchAllCount(table);
-    }
 }

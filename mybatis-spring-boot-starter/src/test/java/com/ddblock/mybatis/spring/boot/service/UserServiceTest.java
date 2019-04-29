@@ -1,9 +1,9 @@
 package com.ddblock.mybatis.spring.boot.service;
 
-import com.ddblock.mybatis.spring.boot.StartApplication;
-import com.ddblock.mybatis.spring.boot.bean.User;
-import com.ddblock.mybatis.spring.plus.mapper.support.Order;
-import com.ddblock.mybatis.spring.plus.mapper.support.Page;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+
 import org.apache.ibatis.jdbc.SQL;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,17 +14,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import com.ddblock.mybatis.spring.boot.StartApplication;
+import com.ddblock.mybatis.spring.boot.example.UserExample;
+import com.ddblock.mybatis.spring.boot.model.User;
+import com.ddblock.mybatis.spring.plus.mapper.support.Order;
+import com.ddblock.mybatis.spring.plus.mapper.support.Page;
 
 /**
  * 此处有使用到Spring的事务管理，因为注入UserService的实现对象UserServiceImpl添加了事务注解
  *
- * 注意：在测试类或测试方法上添加@Transactional是没有用的，TODO  具体原因不清楚！！！
+ * 注意：在测试类或测试方法上添加@Transactional是没有用的，TODO 具体原因不清楚！！！
  *
- * Author XiaoJia
- * Date 2019-03-14 11:59
+ * @author XiaoJia
+ * @date 2019-03-14 11:59
  */
 @SpringBootTest(classes = StartApplication.class)
 public class UserServiceTest extends AbstractJUnit4SpringContextTests {
@@ -36,7 +38,7 @@ public class UserServiceTest extends AbstractJUnit4SpringContextTests {
 
     @After
     public void deleteTestData() {
-        userService.deleteBatch(new User(), false);
+        userService.deleteBatch(null);
     }
 
     /**
@@ -58,11 +60,11 @@ public class UserServiceTest extends AbstractJUnit4SpringContextTests {
         addUser.setName("updateName");
 
         LOGGER.info("不处理空值字段");
-        boolean success = userService.update(addUser, false);
+        boolean success = userService.update(addUser, false) > 0;
         Assert.assertTrue(success);
 
         LOGGER.info("处理空值字段");
-        success = userService.update(addUser, true);
+        success = userService.update(addUser, true) > 0;
         Assert.assertTrue(success);
     }
 
@@ -73,11 +75,12 @@ public class UserServiceTest extends AbstractJUnit4SpringContextTests {
         User setUser = new User();
         setUser.setName("nameUpdateBatch1");
 
-        User whereUser = new User();
-        whereUser.setId(addUser.getId());
+        UserExample example = new UserExample();
+        UserExample.Criteria criteria = example.createCriteria();
+        criteria.andIdEqualTo(addUser.getId());
 
         LOGGER.info("不处理空值字段");
-        boolean success = userService.updateBatch(setUser, whereUser, false);
+        boolean success = userService.updateBatch(setUser, example, false) > 0;
         Assert.assertTrue(success);
     }
 
@@ -85,7 +88,7 @@ public class UserServiceTest extends AbstractJUnit4SpringContextTests {
     public void testDelete() {
         User addUser = addTestData();
 
-        boolean success = userService.delete(addUser.getId());
+        boolean success = userService.delete(addUser.getId()) > 0;
         Assert.assertTrue(success);
     }
 
@@ -94,7 +97,7 @@ public class UserServiceTest extends AbstractJUnit4SpringContextTests {
         addTestData();
         addTestData();
 
-        boolean success = userService.deleteBatch(new User(), false);
+        boolean success = userService.deleteBatch(null) > 0;
         Assert.assertTrue(success);
     }
 
@@ -111,14 +114,15 @@ public class UserServiceTest extends AbstractJUnit4SpringContextTests {
         addTestData("name");
         addTestData();
 
-        User queryUser = new User();
-        queryUser.setName("name");
+        UserExample example = new UserExample();
+        UserExample.Criteria criteria = example.createCriteria();
+        criteria.andNameEqualTo("name");
 
         LOGGER.info("不带Order by");
-        userService.searchList(queryUser);
+        userService.searchList(example);
 
         LOGGER.info("带Order by");
-        userService.searchList(queryUser, new Order("id", false));
+        userService.searchList(example, new Order("id", false));
     }
 
     @Test
@@ -138,6 +142,21 @@ public class UserServiceTest extends AbstractJUnit4SpringContextTests {
                 ORDER_BY("id desc limit #{paramMap.begin}, #{paramMap.end}");
             }
         });
+    }
+
+    @Test
+    public void testSearchPage() {
+        addTestData();
+        addTestData();
+        addTestData();
+
+        Page<User> page = new Page<>();
+
+        LOGGER.info("不带Order by");
+        userService.searchPage(page, null);
+
+        LOGGER.info("带Order by");
+        userService.searchPage(page, null, new Order("id", false));
     }
 
     @Test
@@ -163,65 +182,24 @@ public class UserServiceTest extends AbstractJUnit4SpringContextTests {
     }
 
     @Test
-    public void testSearchAll() {
-        addTestData();
-        addTestData();
-
-        LOGGER.info("不带Order by");
-        userService.searchAll();
-
-        LOGGER.info("带Order by");
-        userService.searchAll(new Order("id", false));
-    }
-
-    @Test
-    public void testSearchAllByPage() {
-        addTestData();
-        addTestData();
-        addTestData();
-        addTestData();
-
-        Page<User> page = new Page<>();
-        page.setPageSize(2);
-
-        LOGGER.info("不带Order by");
-        userService.searchAllByPage(page);
-
-        LOGGER.info("带Order by");
-        userService.searchAllByPage(page, new Order("id", false));
-    }
-
-    @Test
     public void testSearchCount() {
         addTestData("name");
         addTestData("name");
         addTestData();
 
-        User User = new User();
-        User.setName("name");
+        UserExample example = new UserExample();
+        UserExample.Criteria criteria = example.createCriteria();
+        criteria.andNameEqualTo("name");
 
-        long count = userService.searchCount(User);
+        long count = userService.searchCount(example);
         LOGGER.info("表中数据记录数：" + count);
     }
-
-    @Test
-    public void testSearchAllCount() {
-        addTestData();
-        addTestData();
-
-        long count = userService.searchAllCount();
-        LOGGER.info("表中数据总记录数：" + count);
-    }
-
 
     private User addTestData() {
         User addUser = new User();
         addUser.setId(new Random().nextInt(1000));
         addUser.setName("name" + addUser.getId());
-
-        boolean success = userService.add(addUser);
-        Assert.assertTrue(success);
-
+        userService.add(addUser);
         return addUser;
     }
 
@@ -229,9 +207,7 @@ public class UserServiceTest extends AbstractJUnit4SpringContextTests {
         User addUser = new User();
         addUser.setId(new Random().nextInt(1000));
         addUser.setName(name);
-
-        boolean success = userService.add(addUser);
-        Assert.assertTrue(success);
+        userService.add(addUser);
     }
 
 }

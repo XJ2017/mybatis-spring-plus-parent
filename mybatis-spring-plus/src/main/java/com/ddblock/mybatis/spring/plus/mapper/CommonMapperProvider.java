@@ -1,16 +1,20 @@
 package com.ddblock.mybatis.spring.plus.mapper;
 
-import com.ddblock.mybatis.spring.plus.mapper.support.Order;
-import com.ddblock.mybatis.spring.plus.mapper.support.Page;
-import com.ddblock.mybatis.spring.plus.util.ClassUtil;
+import static com.ddblock.mybatis.spring.plus.util.ClassUtil.*;
+import static com.ddblock.mybatis.spring.plus.util.StringUtil.formatToDBName;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.jdbc.SQL;
 
-import java.io.Serializable;
-import java.util.Map;
-
-import static com.ddblock.mybatis.spring.plus.util.ClassUtil.*;
-import static com.ddblock.mybatis.spring.plus.util.StringUtil.formatToDBName;
+import com.ddblock.mybatis.spring.plus.mapper.support.BaseCriteria;
+import com.ddblock.mybatis.spring.plus.mapper.support.BaseExample;
+import com.ddblock.mybatis.spring.plus.mapper.support.Criterion;
+import com.ddblock.mybatis.spring.plus.mapper.support.Order;
+import com.ddblock.mybatis.spring.plus.util.ClassUtil;
 
 /**
  * 通用处理Mapper的SQL实现
@@ -85,16 +89,18 @@ public class CommonMapperProvider {
      *
      * @param setData
      *            变更之后的数据
-     * @param whereData
-     *            变更条件（注意：字段为空不作为Where条件）
+     * @param example
+     *            变更条件
+     *
      * @param doNull
      *            字段值为空是否处理
+     * @return int 返回的变更条数
      * @param <T>
-     *            表结构
-     *
-     * @return 生成的SQL
+     *            表模型类
+     * @param <E>
+     *            表模型查询类
      */
-    public <T> String updateBatch(@Param("setData") T setData, @Param("whereData") T whereData,
+    public <T, E extends BaseExample> String updateBatch(@Param("setData") T setData, @Param("example") E example,
         @Param("doNull") boolean doNull) {
         Class<?> table = setData.getClass();
         Map<String, String> fieldMap = getFieldAndDBFieldNames(table);
@@ -111,16 +117,8 @@ public class CommonMapperProvider {
                     SET(dbFieldName + "=#{setData." + fieldName + "}");
                 });
 
-                fieldMap.forEach((fieldName, dbFieldName) -> {
-                    Object fieldValue = getFieldValue(whereData, fieldName);
-                    if (null == fieldValue)
-                        return;
-
-                    WHERE(dbFieldName + "=#{whereData." + fieldName + "}");
-                });
-
+                applyWhere(this, example, true);
             }
-
         }.toString();
     }
 
@@ -149,30 +147,22 @@ public class CommonMapperProvider {
     /**
      * 根据对象值条件，批量删除符合条件的记录集合
      *
-     * @param whereData
+     * @param table
+     *            表结构类
+     * @param example
      *            变更条件
-     * @param doNull
-     *            字段值为空是否处理
-     * @param <T>
-     *            表结构
      *
      * @return 生成的SQL
+     * @param <T>
+     *            表模型类
+     * @param <E>
+     *            表模型查询类
      */
-    public <T> String deleteBatch(@Param("whereData") T whereData, @Param("doNull") boolean doNull) {
-        Class<?> table = whereData.getClass();
-        Map<String, String> fieldMap = getFieldAndDBFieldNames(table);
-
+    public <T, E extends BaseExample> String deleteBatch(@Param("table") Class<T> table, @Param("example") E example) {
         return new SQL() {
             {
                 DELETE_FROM(getTableName(table));
-
-                fieldMap.forEach((fieldName, dbFieldName) -> {
-                    Object fieldValue = ClassUtil.getFieldValue(whereData, fieldName);
-                    if (!doNull && null == fieldValue)
-                        return;
-
-                    WHERE(dbFieldName + "=#{whereData." + fieldName + "}");
-                });
+                applyWhere(this, example, true);
             }
 
         }.toString();
@@ -204,29 +194,27 @@ public class CommonMapperProvider {
     /**
      * 根据对象值条件，查询符合条件的记录集合
      *
-     * @param whereData
-     *            查询条件（注意：字段为空不作为Where条件）
+     * @param table
+     *            表模型
+     * @param example
+     *            查询条件
      * @param orders
      *            排序规则
-     * @param <T>
-     *            表结构
      *
+     * @param <T>
+     *            表模型类
+     * @param <E>
+     *            表模型查询类
      * @return 生成的SQL
      */
-    public <T> String searchList(@Param("whereData") T whereData, @Param("orders") Order... orders) {
-        Class<?> table = whereData.getClass();
-        Map<String, String> fieldMap = getFieldAndDBFieldNames(table);
-
+    public <T, E extends BaseExample> String searchList(@Param("table") Class<T> table, @Param("example") E example,
+        @Param("orders") Order... orders) {
         return new SQL() {
             {
                 SELECT("*");
                 FROM(getTableName(table));
 
-                fieldMap.forEach((fieldName, dbFieldName) -> {
-                    Object fieldValue = getFieldValue(whereData, fieldName);
-                    if (fieldName != null && fieldValue != null)
-                        WHERE(dbFieldName + "=#{whereData." + fieldName + "}");
-                });
+                applyWhere(this, example, true);
 
                 for (Order order : orders) {
                     ORDER_BY(order.toSqlString());
@@ -253,6 +241,27 @@ public class CommonMapperProvider {
     }
 
     /**
+     * 根据对象值条件，查询符合条件的记录集合并进行分页
+     *
+     * @param table
+     *            表模型
+     * @param example
+     *            查询条件
+     * @param orders
+     *            排序规则
+     *
+     * @param <T>
+     *            表模型类
+     * @param <E>
+     *            表模型查询类
+     * @return 生成的SQL
+     */
+    public <T, E extends BaseExample> String searchPage(@Param("table") Class<T> table, @Param("example") E example,
+        @Param("orders") Order... orders) {
+        return searchList(table, example, orders);
+    }
+
+    /**
      * 根据自定义SQL，查询符合条件的记录集合
      *
      * @param paramMap
@@ -269,102 +278,137 @@ public class CommonMapperProvider {
     }
 
     /**
-     * 按照排序规则将表中数据全部查询出来
-     *
-     * @param table
-     *            表结构类
-     * @param orders
-     *            排序规则
-     * @param <T>
-     *            表结构
-     *
-     * @return 生成的SQL
-     */
-    public <T> String searchAll(@Param("table") Class<T> table, @Param("orders") Order... orders) {
-        return new SQL() {
-            {
-                SELECT("*");
-                FROM(getTableName(table));
-
-                for (Order order : orders) {
-                    ORDER_BY(order.toSqlString());
-                }
-            }
-
-        }.toString();
-    }
-
-    /**
-     * 按照排序规则将表中数据分页查询出来
-     *
-     * @param table
-     *            表结构类
-     * @param orders
-     *            培训规则
-     * @param <T>
-     *            表结构
-     *
-     * @return 生成的SQL
-     */
-    public <T> String searchAllByPage(@Param("table") Class<T> table, @Param("orders") Order... orders) {
-        return new SQL() {
-            {
-                SELECT("*");
-                FROM(getTableName(table));
-
-                for (Order order : orders) {
-                    ORDER_BY(order.toSqlString());
-                }
-            }
-
-        }.toString();
-    }
-
-    /**
      * 获取符合条件的总记录数
      *
-     * @param whereData
-     *            查询条件（注意：字段为空不作为Where条件）
-     * @param <T>
-     *            表结构
+     * @param table
+     *            表模型类
+     * @param example
+     *            查询条件
      *
-     * @return 生成的SQL
+     * @param <T>
+     *            表模型
+     * @param <E>
+     *            表模型条件类
      */
-    public <T> String searchCount(T whereData) {
-        Class<?> table = whereData.getClass();
-        Map<String, String> fieldMap = getFieldAndDBFieldNames(table);
-
+    public <T, E extends BaseExample> String searchCount(@Param("table") Class<T> table, @Param("example") E example) {
         return new SQL() {
             {
                 SELECT("count(1)");
                 FROM(getTableName(table));
 
-                fieldMap.forEach((fieldName, dbFieldName) -> {
-                    Object fieldValue = getFieldValue(whereData, fieldName);
-                    if (fieldValue != null)
-                        WHERE(dbFieldName + "=#{" + fieldName + "}");
-                });
+                applyWhere(this, example, true);
             }
+
         }.toString();
     }
 
+    // -----------------------------------------------------------
+
     /**
-     * 获取总记录数
-     *
-     * @param table
-     *            表结构类
-     * @param <T>
-     *            表结构
-     *
-     * @return 生成的SQL
+     * @param sql
+     *            原SQL
+     * @param example
+     *            where条件
+     * @param includeExamplePhrase
+     *            example是否作为一个参数需要解析
+     * @param <E>
+     *            条件泛型类
      */
-    public <T> String searchAllCount(Class<T> table) {
-        return new SQL() {
-            {
-                SELECT("count(1)");
-                FROM(getTableName(table));
+    @SuppressWarnings({"SameParameterValue", "AlibabaMethodTooLong"})
+    private <E extends BaseExample> void applyWhere(SQL sql, E example, boolean includeExamplePhrase) {
+        if (example == null) {
+            return;
+        }
+
+        String parmPhrase1;
+        String parmPhrase1TypeHandler;
+        String parmPhrase2;
+        String parmPhrase2TypeHandler;
+        String parmPhrase3;
+        String parmPhrase3TypeHandler;
+        if (includeExamplePhrase) {
+            parmPhrase1 = "%s #{example.oredCriteria[%d].allCriteria[%d].value}";
+            parmPhrase1TypeHandler = "%s #{example.oredCriteria[%d].allCriteria[%d].value,typeHandler=%s}";
+            parmPhrase2 =
+                "%s #{example.oredCriteria[%d].allCriteria[%d].value} and #{example.oredCriteria[%d].criteria[%d].secondValue}";
+            parmPhrase2TypeHandler =
+                "%s #{example.oredCriteria[%d].allCriteria[%d].value,typeHandler=%s} and #{example.oredCriteria[%d].criteria[%d].secondValue,typeHandler=%s}";
+            parmPhrase3 = "#{example.oredCriteria[%d].allCriteria[%d].value[%d]}";
+            parmPhrase3TypeHandler = "#{example.oredCriteria[%d].allCriteria[%d].value[%d],typeHandler=%s}";
+        } else {
+            parmPhrase1 = "%s #{oredCriteria[%d].allCriteria[%d].value}";
+            parmPhrase1TypeHandler = "%s #{oredCriteria[%d].allCriteria[%d].value,typeHandler=%s}";
+            parmPhrase2 =
+                "%s #{oredCriteria[%d].allCriteria[%d].value} and #{oredCriteria[%d].criteria[%d].secondValue}";
+            parmPhrase2TypeHandler =
+                "%s #{oredCriteria[%d].allCriteria[%d].value,typeHandler=%s} and #{oredCriteria[%d].criteria[%d].secondValue,typeHandler=%s}";
+            parmPhrase3 = "#{oredCriteria[%d].allCriteria[%d].value[%d]}";
+            parmPhrase3TypeHandler = "#{oredCriteria[%d].allCriteria[%d].value[%d],typeHandler=%s}";
+        }
+        StringBuilder sb = new StringBuilder();
+        @SuppressWarnings("unchecked")
+        List<BaseCriteria> oredCriteria = example.getOredCriteria();
+        boolean firstCriteria = true;
+        for (int i = 0; i < oredCriteria.size(); i++) {
+            BaseCriteria criteria = oredCriteria.get(i);
+            if (criteria.isValid()) {
+                if (firstCriteria) {
+                    firstCriteria = false;
+                } else {
+                    sb.append(" or ");
+                }
+                sb.append('(');
+                List<Criterion> criterions = criteria.getAllCriteria();
+                boolean firstCriterion = true;
+                for (int j = 0; j < criterions.size(); j++) {
+                    Criterion criterion = criterions.get(j);
+                    if (firstCriterion) {
+                        firstCriterion = false;
+                    } else {
+                        sb.append(" and ");
+                    }
+                    if (criterion.isNoValue()) {
+                        sb.append(criterion.getCondition());
+                    } else if (criterion.isSingleValue()) {
+                        if (criterion.getTypeHandler() == null) {
+                            sb.append(String.format(parmPhrase1, criterion.getCondition(), i, j));
+                        } else {
+                            sb.append(String.format(parmPhrase1TypeHandler, criterion.getCondition(), i, j,
+                                criterion.getTypeHandler()));
+                        }
+                    } else if (criterion.isBetweenValue()) {
+                        if (criterion.getTypeHandler() == null) {
+                            sb.append(String.format(parmPhrase2, criterion.getCondition(), i, j, i, j));
+                        } else {
+                            sb.append(String.format(parmPhrase2TypeHandler, criterion.getCondition(), i, j,
+                                criterion.getTypeHandler(), i, j, criterion.getTypeHandler()));
+                        }
+                    } else if (criterion.isListValue()) {
+                        sb.append(criterion.getCondition());
+                        sb.append(" (");
+                        List<?> listItems = (List<?>)criterion.getValue();
+                        boolean comma = false;
+                        for (int k = 0; k < listItems.size(); k++) {
+                            if (comma) {
+                                sb.append(", ");
+                            } else {
+                                comma = true;
+                            }
+                            if (criterion.getTypeHandler() == null) {
+                                sb.append(String.format(parmPhrase3, i, j, k));
+                            } else {
+                                sb.append(String.format(parmPhrase3TypeHandler, i, j, k, criterion.getTypeHandler()));
+                            }
+                        }
+                        sb.append(')');
+                    }
+                }
+                sb.append(')');
             }
-        }.toString();
+        }
+        if (sb.length() > 0) {
+            sql.WHERE(sb.toString());
+        }
     }
 
 }

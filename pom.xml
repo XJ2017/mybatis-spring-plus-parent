@@ -13,7 +13,7 @@
 
     <groupId>com.ddblock.mybatis</groupId>
     <artifactId>mybatis-spring-plus-parent</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>mybatis-spring-plus-parent</name>

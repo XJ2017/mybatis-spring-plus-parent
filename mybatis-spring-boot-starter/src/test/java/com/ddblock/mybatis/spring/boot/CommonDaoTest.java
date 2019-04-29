@@ -1,11 +1,9 @@
 package com.ddblock.mybatis.spring.boot;
 
-import com.ddblock.mybatis.spring.boot.bean.User2;
-import com.ddblock.mybatis.spring.boot.bean.User;
-import com.ddblock.mybatis.spring.plus.CommonDao;
-import com.ddblock.mybatis.spring.plus.CommonDaoFactory;
-import com.ddblock.mybatis.spring.plus.mapper.support.Order;
-import com.ddblock.mybatis.spring.plus.mapper.support.Page;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+
 import org.apache.ibatis.jdbc.SQL;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,9 +15,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import com.ddblock.mybatis.spring.boot.model.User;
+import com.ddblock.mybatis.spring.boot.model.User2;
+import com.ddblock.mybatis.spring.boot.example.User2Example;
+import com.ddblock.mybatis.spring.boot.example.UserExample;
+import com.ddblock.mybatis.spring.plus.CommonDao;
+import com.ddblock.mybatis.spring.plus.mapper.support.Order;
+import com.ddblock.mybatis.spring.plus.mapper.support.Page;
 
 /**
  * 注意：此处没有使用到Spring的事务管理，因为注入的CommonDao接口的实现对象CommonDaoProxy没有添加事务注解
@@ -29,17 +31,17 @@ public class CommonDaoTest extends AbstractJUnit4SpringContextTests {
     private static final Logger LOGGER = LogManager.getLogger(CommonDaoTest.class);
 
     @Autowired
-    private CommonDao<User> userDao;
+    private CommonDao<User, UserExample> userDao;
 
     @Autowired
-    private CommonDao<User2> user2Dao;
+    private CommonDao<User2, User2Example> user2Dao;
 
     @Autowired
     private PlatformTransactionManager txmanager;
 
     @After
     public void deleteTestData() {
-        userDao.deleteBatch(new User(), false);
+        userDao.deleteBatch(null);
     }
 
     @Test
@@ -68,11 +70,12 @@ public class CommonDaoTest extends AbstractJUnit4SpringContextTests {
         User setUser = new User();
         setUser.setName("nameUpdateBatch1");
 
-        User whereUser = new User();
-        whereUser.setId(addUser.getId());
+        UserExample example = new UserExample();
+        UserExample.Criteria criteria = example.createCriteria();
+        criteria.andIdEqualTo(addUser.getId());
 
         LOGGER.info("不处理空值字段");
-        boolean success = userDao.updateBatch(setUser, whereUser, false) > 0;
+        boolean success = userDao.updateBatch(setUser, example, false) > 0;
         Assert.assertTrue(success);
     }
 
@@ -89,7 +92,7 @@ public class CommonDaoTest extends AbstractJUnit4SpringContextTests {
         addTestData();
         addTestData();
 
-        boolean success = userDao.deleteBatch(new User(), false) > 0;
+        boolean success = userDao.deleteBatch(null) > 0;
         Assert.assertTrue(success);
     }
 
@@ -106,14 +109,15 @@ public class CommonDaoTest extends AbstractJUnit4SpringContextTests {
         addTestData("name");
         addTestData();
 
-        User queryUser = new User();
-        queryUser.setName("name");
+        UserExample example = new UserExample();
+        UserExample.Criteria criteria = example.createCriteria();
+        criteria.andNameEqualTo("name");
 
         LOGGER.info("不带Order by");
-        userDao.searchList(queryUser);
+        userDao.searchList(example);
 
         LOGGER.info("带Order by");
-        userDao.searchList(queryUser, new Order("id", false));
+        userDao.searchList(example, new Order("id", false));
     }
 
     @Test
@@ -133,6 +137,21 @@ public class CommonDaoTest extends AbstractJUnit4SpringContextTests {
                 ORDER_BY("id desc limit #{paramMap.begin}, #{paramMap.end}");
             }
         });
+    }
+
+    @Test
+    public void testSearchPage() {
+        addTestData();
+        addTestData();
+        addTestData();
+
+        Page<User> page = new Page<>();
+
+        LOGGER.info("不带Order by");
+        userDao.searchPage(page, null);
+
+        LOGGER.info("带Order by");
+        userDao.searchPage(page, null, new Order("id", false));
     }
 
     @Test
@@ -158,56 +177,18 @@ public class CommonDaoTest extends AbstractJUnit4SpringContextTests {
     }
 
     @Test
-    public void testSearchAll() {
-        addTestData();
-        addTestData();
-
-        LOGGER.info("不带Order by");
-        userDao.searchAll();
-
-        LOGGER.info("带Order by");
-        userDao.searchAll(new Order("id", false));
-    }
-
-    @Test
-    public void testSearchAllByPage() {
-        addTestData();
-        addTestData();
-        addTestData();
-        addTestData();
-
-        Page<User> page = new Page<>();
-        page.setPageSize(2);
-
-        LOGGER.info("不带Order by");
-        userDao.searchAllByPage(page);
-
-        LOGGER.info("带Order by");
-        userDao.searchAllByPage(page, new Order("id", false));
-    }
-
-    @Test
     public void testSearchCount() {
         addTestData("name");
         addTestData("name");
         addTestData();
 
-        User User = new User();
-        User.setName("name");
+        UserExample example = new UserExample();
+        UserExample.Criteria criteria = example.createCriteria();
+        criteria.andNameEqualTo("name");
 
-        long count = userDao.searchCount(User);
+        long count = userDao.searchCount(example);
         LOGGER.info("表中数据记录数：" + count);
     }
-
-    @Test
-    public void testSearchAllCount() {
-        addTestData();
-        addTestData();
-
-        long count = userDao.searchAllCount();
-        LOGGER.info("表中数据总记录数：" + count);
-    }
-
 
     private User addTestData() {
         User addUser = new User();

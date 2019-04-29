@@ -6,20 +6,20 @@
 
     <parent>
         <groupId>com.ddblock.mybatis</groupId>
-		<artifactId>mybatis-spring-plus-parent</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+        <artifactId>mybatis-spring-plus-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>mybatis-spring-boot-starter</artifactId>
     <name>mybatis-spring-boot-starter</name>
     <description>基于对接SpringBoot应用</description>
-	
-	<properties>
-        <mybatis-spring-plus.version>0.0.1-SNAPSHOT</mybatis-spring-plus.version>
+
+    <properties>
+        <mybatis-spring-plus.version>1.0.0-SNAPSHOT</mybatis-spring-plus.version>
     </properties>
 
     <dependencies>
-		<dependency>
+        <dependency>
             <groupId>com.ddblock.mybatis</groupId>
             <artifactId>mybatis-spring-plus</artifactId>
             <version>${mybatis-spring-plus.version}</version>
@@ -29,7 +29,7 @@
             <groupId>org.mybatis.generator</groupId>
             <artifactId>mybatis-generator-core</artifactId>
         </dependency>
-	
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
@@ -45,8 +45,8 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-		
-		<!-- 单元测试 -->
+
+        <!-- 单元测试 -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -73,7 +73,7 @@
             <artifactId>mysql-connector-java</artifactId>
             <scope>test</scope>
         </dependency>
-		
+
     </dependencies>
 
 </project>

@@ -6,8 +6,8 @@ import java.util.Map;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.jdbc.SQL;
 
+import com.ddblock.mybatis.spring.plus.mapper.support.BaseExample;
 import com.ddblock.mybatis.spring.plus.mapper.support.Order;
-import com.ddblock.mybatis.spring.plus.mapper.support.Page;
 
 /**
  * 操作DB的通用处理Mapper
@@ -46,15 +46,20 @@ public interface CommonMapper {
      *
      * @param setData
      *            变更之后的数据
-     * @param whereData
-     *            变更条件（注意：字段为空不作为Where条件）
+     * @param example
+     *            变更条件
+     *
      * @param doNull
      *            字段值为空是否处理
-     *
      * @return int 返回的变更条数
+     * @param <T>
+     *            表模型类
+     * @param <E>
+     *            表模型查询类
      */
     @UpdateProvider(type = CommonMapperProvider.class, method = "updateBatch")
-    <T> int updateBatch(@Param("setData") T setData, @Param("whereData") T whereData, @Param("doNull") boolean doNull);
+    <T, E extends BaseExample> int updateBatch(@Param("setData") T setData, @Param("example") E example,
+        @Param("doNull") boolean doNull);
 
     /**
      * 根据 id 删除一条数据
@@ -74,15 +79,19 @@ public interface CommonMapper {
     /**
      * 根据对象值条件，批量删除符合条件的记录集合
      *
-     * @param whereData
+     * @param table
+     *            表结构类
+     * @param example
      *            变更条件
-     * @param doNull
-     *            字段值为空是否处理
      *
      * @return int 返回的变更条数
+     * @param <T>
+     *            表模型类
+     * @param <E>
+     *            表模型查询类
      */
     @DeleteProvider(type = CommonMapperProvider.class, method = "deleteBatch")
-    <T> int deleteBatch(@Param("whereData") T whereData, @Param("doNull") boolean doNull);
+    <T, E extends BaseExample> int deleteBatch(@Param("table") Class<T> table, @Param("example") E example);
 
     /**
      * 根据id查询一条记录
@@ -104,19 +113,24 @@ public interface CommonMapper {
     /**
      * 根据对象值条件，查询符合条件的记录集合
      *
-     * @param whereData
-     *            查询条件（注意：字段为空不作为Where条件）
+     * @param table
+     *            表模型
+     * @param example
+     *            查询条件
      * @param resultHandler
      *            结果类型处理器
      * @param orders
      *            排序规则
+     *
      * @param <T>
-     *            表结构
+     *            表模型类
+     * @param <E>
+     *            表模型查询类
      */
     @ResultType(value = CommonMapperResultType.class)
     @SelectProvider(type = CommonMapperProvider.class, method = "searchList")
-    <T> void searchList(@Param("whereData") T whereData, CommonMapperResultHandler resultHandler,
-        @Param("orders") Order... orders);
+    <T, E extends BaseExample> void searchList(@Param("table") Class<T> table, @Param("example") E example,
+        CommonMapperResultHandler resultHandler, @Param("orders") Order... orders);
 
     /**
      * 根据自定义SQL，查询符合条件的记录集合
@@ -136,6 +150,27 @@ public interface CommonMapper {
         CommonMapperResultHandler resultHandler);
 
     /**
+     * 根据查询条件，查询符合条件的记录集合
+     *
+     * @param table
+     *            表模型类
+     * @param example
+     *            查询对象
+     * @param resultHandler
+     *            结果类型处理器
+     * @param orders
+     *            排序规则
+     * @param <T>
+     *            表模型类
+     * @param <E>
+     *            表模型条件类
+     */
+    @ResultType(value = CommonMapperResultType.class)
+    @SelectProvider(type = CommonMapperProvider.class, method = "searchPage")
+    <T, E extends BaseExample> void searchPage(@Param("table") Class<T> table, @Param("example") E example,
+        CommonMapperResultHandler resultHandler, @Param("orders") Order... orders);
+
+    /**
      * 根据自定义SQL，查询符合条件的记录集合
      *
      * @param paramMap
@@ -153,62 +188,20 @@ public interface CommonMapper {
         CommonMapperResultHandler resultHandler);
 
     /**
-     * 按照排序规则将表中数据全部查询出来
-     *
-     * @param table
-     *            表结构类
-     * @param resultHandler
-     *            结果类型处理器
-     * @param orders
-     *            排序规则
-     * @param <T>
-     *            表结构
-     */
-    @ResultType(value = CommonMapperResultType.class)
-    @SelectProvider(type = CommonMapperProvider.class, method = "searchAll")
-    <T> void searchAll(@Param("table") Class<T> table, CommonMapperResultHandler resultHandler,
-        @Param("orders") Order... orders);
-
-    /**
-     * 按照排序规则将表中数据分页查询出来
-     *
-     * @param table
-     *            表结构类
-     * @param resultHandler
-     *            结果类型处理器
-     * @param orders
-     *            培训规则
-     * @param <T>
-     *            表结构
-     */
-    @ResultType(value = CommonMapperResultType.class)
-    @SelectProvider(type = CommonMapperProvider.class, method = "searchAllByPage")
-    <T> void searchAllByPage(@Param("table") Class<T> table, CommonMapperResultHandler resultHandler,
-        @Param("orders") Order... orders);
-
-    /**
      * 获取符合条件的总记录数
      *
-     * @param whereData
-     *            查询条件（注意：字段为空不作为Where条件）
-     * @param <T>
-     *            表结构
+     * @param table
+     *            表模型类
+     * @param example
+     *            查询条件
      *
      * @return 记录数
+     * @param <T>
+     *            表模型
+     * @param <E>
+     *            表模型条件类
      */
     @SelectProvider(type = CommonMapperProvider.class, method = "searchCount")
-    <T> long searchCount(T whereData);
+    <T, E extends BaseExample> long searchCount(@Param("table") Class<T> table, @Param("example") E example);
 
-    /**
-     * 获取总记录数
-     *
-     * @param table
-     *            表结构类
-     * @param <T>
-     *            表结构
-     *
-     * @return 总记录数
-     */
-    @SelectProvider(type = CommonMapperProvider.class, method = "searchAllCount")
-    <T> long searchAllCount(Class<T> table);
 }

@@ -1,22 +1,23 @@
 package com.ddblock.mybatis.spring.boot.generator;
 
-import com.ddblock.mybatis.spring.boot.AbstractCommonDaoFactory;
-import com.ddblock.mybatis.spring.plus.CommonDao;
-import org.mybatis.generator.api.dom.java.*;
-import org.mybatis.generator.codegen.AbstractJavaGenerator;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.mybatis.generator.api.dom.java.*;
+import org.mybatis.generator.codegen.AbstractJavaGenerator;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.ddblock.mybatis.spring.boot.AbstractCommonDaoFactory;
+import com.ddblock.mybatis.spring.plus.CommonDao;
+
 /**
  * DAO对象工厂生成器（每个表都会实例化一个新的生成器）
  *
- * Author XiaoJia
- * Date 2019-03-12 11:35
+ * @author XiaoJia
+ * @date 2019-03-12 11:35
  */
 public class CommonDaoFactoryJavaGenerator extends AbstractJavaGenerator {
 
@@ -30,9 +31,9 @@ public class CommonDaoFactoryJavaGenerator extends AbstractJavaGenerator {
     // 每个表都会执行一次
     @Override
     public List<CompilationUnit> getCompilationUnits() {
-        if (! isGenerated) {
+        if (!isGenerated) {
             synchronized (CommonDaoFactoryJavaGenerator.class) {
-                if (! isGenerated) {
+                if (!isGenerated) {
                     String targetPackage = context.getJavaModelGeneratorConfiguration().getTargetPackage();
                     factoryTopLevelClass = generateDaoFactory(targetPackage);
                     isGenerated = true;
@@ -88,25 +89,32 @@ public class CommonDaoFactoryJavaGenerator extends AbstractJavaGenerator {
     /**
      * 给生成的工厂类添加addDaoBean方法
      *
-     * @param topLevelClass modelTopLevelClass
+     * @param topLevelClass
+     *            modelTopLevelClass
      *
      */
     private static void addDaoBeanMethod(TopLevelClass topLevelClass) {
         String modelName = topLevelClass.getType().getShortNameWithoutTypeArguments();
+        String exampleName = modelName + "Example";
 
         // 设置返回信息
         FullyQualifiedJavaType retureType = new FullyQualifiedJavaType("CommonDao");
         retureType.addTypeArgument(new FullyQualifiedJavaType(modelName));
+        retureType.addTypeArgument(new FullyQualifiedJavaType(exampleName));
 
         Method method = new Method();
         method.addAnnotation("@Bean");
         method.setVisibility(JavaVisibility.PROTECTED);
         method.setName("addDaoBean" + modelName);
-        method.addBodyLine("return addDaoBean("+ modelName +".class);");
+        method.addBodyLine("return addDaoBean(" + modelName + ".class, " + exampleName + ".class);");
         method.setReturnType(retureType);
+
+        String examplePackage = topLevelClass.getType().getPackageName();
+        examplePackage = examplePackage.substring(0, examplePackage.lastIndexOf("."));
 
         // 添加导包信息
         factoryTopLevelClass.addImportedType(topLevelClass.getType());
+        factoryTopLevelClass.addImportedType(examplePackage + ".example." + exampleName);
         factoryTopLevelClass.addMethod(method);
     }
 
