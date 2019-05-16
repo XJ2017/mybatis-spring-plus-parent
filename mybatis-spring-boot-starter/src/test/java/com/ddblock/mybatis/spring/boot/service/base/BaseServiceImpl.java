@@ -66,6 +66,11 @@ public abstract class BaseServiceImpl<M, E extends BaseExample> implements BaseS
     }
 
     @Override
+    public <C> List<C> searchComplexListBySQL(Class<C> complexTable, Map<String, Object> paramMap, SQL sql) {
+        return commonDao.searchComplexListBySQL(complexTable, paramMap, sql);
+    }
+
+    @Override
     public void searchPage(Page<M> page, E example, Order... orders) {
         commonDao.searchPage(page, example, orders);
     }
@@ -73,6 +78,11 @@ public abstract class BaseServiceImpl<M, E extends BaseExample> implements BaseS
     @Override
     public void searchPageBySQL(Page<M> page, Map<String, Object> paramMap, SQL sql) {
         commonDao.searchPageBySQL(page, paramMap, sql);
+    }
+
+    @Override
+    public <C> void searchComplexPageBySQL(Class<C> complexTable, Page<C> page, Map<String, Object> paramMap, SQL sql) {
+        commonDao.searchComplexPageBySQL(complexTable, page, paramMap, sql);
     }
 
     @Override

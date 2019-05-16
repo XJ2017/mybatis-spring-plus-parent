@@ -1,6 +1,7 @@
 package com.ddblock.mybatis.spring.boot.service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -16,9 +17,12 @@ import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
 import com.ddblock.mybatis.spring.boot.StartApplication;
 import com.ddblock.mybatis.spring.boot.example.UserExample;
+import com.ddblock.mybatis.spring.boot.model.ComplexUser;
 import com.ddblock.mybatis.spring.boot.model.User;
+import com.ddblock.mybatis.spring.boot.model.User2;
 import com.ddblock.mybatis.spring.plus.mapper.support.Order;
 import com.ddblock.mybatis.spring.plus.mapper.support.Page;
+import com.ddblock.mybatis.spring.plus.util.ClassUtil;
 
 /**
  * 此处有使用到Spring的事务管理，因为注入UserService的实现对象UserServiceImpl添加了事务注解
@@ -36,9 +40,13 @@ public class UserServiceTest extends AbstractJUnit4SpringContextTests {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private User2Service user2Service;
+
     @After
     public void deleteTestData() {
         userService.deleteBatch(null);
+        user2Service.deleteBatch(null);
     }
 
     /**
@@ -145,6 +153,25 @@ public class UserServiceTest extends AbstractJUnit4SpringContextTests {
     }
 
     @Test
+    public void testSearchComplexListBySQL() {
+        addTestData("name1");
+        addTestData("name2");
+        addTestData("name3");
+
+        addTestUse2Data("name1");
+        addTestUse2Data("name2");
+
+        List<ComplexUser> userList = userService.searchComplexListBySQL(ComplexUser.class, null, new SQL() {
+            {
+                SELECT(ClassUtil.getSelectSQL(ComplexUser.class));
+                FROM("user");
+                INNER_JOIN("user2 on user.name=user2.name");
+            }
+        });
+        Assert.assertEquals(2, userList.size());
+    }
+
+    @Test
     public void testSearchPage() {
         addTestData();
         addTestData();
@@ -182,6 +209,30 @@ public class UserServiceTest extends AbstractJUnit4SpringContextTests {
     }
 
     @Test
+    public void testSearchComplexPageBySQL() {
+        addTestData("name1");
+        addTestData("name2");
+        addTestData("name3");
+
+        addTestUse2Data("name1");
+        addTestUse2Data("name2");
+
+        Page<ComplexUser> page = new Page<>();
+        page.setPageNo(1);
+        page.setPageSize(10);
+
+        userService.searchComplexPageBySQL(ComplexUser.class, page, null, new SQL() {
+            {
+                SELECT(ClassUtil.getSelectSQL(ComplexUser.class));
+                FROM("user");
+                INNER_JOIN("user2 on user.name=user2.name");
+                ORDER_BY("user.id desc");
+            }
+        });
+        Assert.assertEquals(2, page.getResults().size());
+    }
+
+    @Test
     public void testSearchCount() {
         addTestData("name");
         addTestData("name");
@@ -208,6 +259,15 @@ public class UserServiceTest extends AbstractJUnit4SpringContextTests {
         addUser.setId(new Random().nextInt(1000));
         addUser.setName(name);
         userService.add(addUser);
+    }
+
+    private void addTestUse2Data(String name) {
+        User2 addUser2 = new User2();
+        addUser2.setId(new Random().nextInt(1000));
+        addUser2.setName(name);
+
+        boolean success = user2Service.add(addUser2) > 0;
+        Assert.assertTrue(success);
     }
 
 }

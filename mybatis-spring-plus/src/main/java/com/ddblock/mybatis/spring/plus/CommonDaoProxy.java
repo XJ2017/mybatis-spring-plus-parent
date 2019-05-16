@@ -86,6 +86,13 @@ public class CommonDaoProxy<M, E extends BaseExample> implements CommonDao<M, E>
     }
 
     @Override
+    public <C> List<C> searchComplexListBySQL(Class<C> complexTable, Map<String, Object> paramMap, SQL sql) {
+        CommonMapperResultHandler<C> resultHandler = new CommonMapperResultHandler<>(complexTable);
+        mapper.searchListBySQL(paramMap, sql, resultHandler);
+        return resultHandler.getDataList();
+    }
+
+    @Override
     public void searchPage(Page<M> page, E example, Order... orders) {
         CommonMapperResultHandler<M> resultHandler = new CommonMapperResultHandler<>(table, page);
         mapper.searchPage(table, example, resultHandler, orders);
@@ -94,6 +101,12 @@ public class CommonDaoProxy<M, E extends BaseExample> implements CommonDao<M, E>
     @Override
     public void searchPageBySQL(Page<M> page, Map<String, Object> paramMap, SQL sql) {
         CommonMapperResultHandler<M> resultHandler = new CommonMapperResultHandler<>(table, page);
+        mapper.searchListBySQL(paramMap, sql, resultHandler);
+    }
+
+    @Override
+    public <C> void searchComplexPageBySQL(Class<C> complexTable, Page<C> page, Map<String, Object> paramMap, SQL sql) {
+        CommonMapperResultHandler<C> resultHandler = new CommonMapperResultHandler<>(complexTable, page);
         mapper.searchListBySQL(paramMap, sql, resultHandler);
     }
 

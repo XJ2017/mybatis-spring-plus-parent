@@ -1,39 +1,111 @@
 package com.ddblock.mybatis.spring.plus.util;
 
-import com.ddblock.mybatis.spring.plus.model.annotation.Id;
-import com.ddblock.mybatis.spring.plus.model.annotation.Table;
+import static com.ddblock.mybatis.spring.plus.util.StringUtil.formatToDBName;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
-import static com.ddblock.mybatis.spring.plus.util.StringUtil.formatToDBName;
+import org.springframework.lang.NonNull;
+
+import com.ddblock.mybatis.spring.plus.model.annotation.ComplexTable;
+import com.ddblock.mybatis.spring.plus.model.annotation.Id;
+import com.ddblock.mybatis.spring.plus.model.annotation.Table;
 
 /**
  * 操作Class对象的工具类
  *
- * Author XiaoJia
- * Date 2019-03-13 10:47
+ * @author XiaoJia
+ * @date 2019-03-13 10:47
  */
 public class ClassUtil {
+
+    public static final String DB_SELECT_SPLIT = ".";
+
+    /**
+     * 缓存表的所有字段信息
+     */
+    private static final Map<Class<?>, Map<String, Field>> CACHE_FIELD = new ConcurrentHashMap<>();
+    /**
+     * 缓存复合表的所有拼接SQL
+     */
+    private static final Map<Class<?>, String> CACHE_COMPLEX_SQL = new ConcurrentHashMap<>();
 
     /**
      * 获取表结构对应数据库中的表名
      *
-     * @param table 表结构类
-     * @param <T>   表结构
+     * @param table
+     *            表结构类
+     * @param <T>
+     *            表结构
      *
      * @return 表名
      */
-    public static <T> String getTableName(Class<T> table) {
+    public static <T> String getTableName(@NonNull Class<T> table) {
         Table t = table.getDeclaredAnnotation(Table.class);
         return StringUtil.isEmpty(t.value()) ? StringUtil.formatToDBName(table.getSimpleName()) : t.value();
     }
 
     /**
+     * 获取表模型集合的查询片段SQL
+     *
+     * @param complexTable
+     *            复合表模型
+     * @return
+     */
+    public static String getSelectSQL(@NonNull Class<?> complexTable) {
+        ComplexTable complexTableAnno = complexTable.getDeclaredAnnotation(ComplexTable.class);
+        if (complexTableAnno == null) {
+            return null;
+        }
+
+        if (CACHE_COMPLEX_SQL.containsKey(complexTable)) {
+            return CACHE_COMPLEX_SQL.get(complexTable);
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        // 只支持复合表嵌套单表，不支持复合表嵌套复合表
+        Map<String, Field> fieldMap = getAllField(complexTable);
+        fieldMap.forEach((fieldName, field) -> {
+            // 处理单表字段
+            Class<?> subTable = field.getType();
+            if (subTable.getDeclaredAnnotation(Table.class) != null) {
+                String subDBTableName = getTableName(subTable);
+
+                Map<String, Field> fields = getAllField(subTable);
+                fields.forEach((subFieldName, subField) -> {
+
+                    com.ddblock.mybatis.spring.plus.model.annotation.Field annotation;
+                    annotation =
+                        subField.getDeclaredAnnotation(com.ddblock.mybatis.spring.plus.model.annotation.Field.class);
+                    if (annotation != null) {
+                        sb.append(",").append(subDBTableName).append(DB_SELECT_SPLIT);
+                        sb.append(formatToDBName(subFieldName));
+                        sb.append(" as '");
+                        sb.append(subDBTableName).append(DB_SELECT_SPLIT);
+                        sb.append(formatToDBName(subFieldName)).append("'");
+                    }
+
+                });
+            } else {
+                sb.append(",").append(formatToDBName(fieldName));
+            }
+        });
+
+        String sqlStr = sb.toString().substring(1);
+        CACHE_COMPLEX_SQL.put(complexTable, sqlStr);
+
+        return sqlStr;
+    }
+
+    /**
      * 获取表结构中主键字段名
      *
-     * @param table 表结构类
-     * @param <T>   表结构
+     * @param table
+     *            表结构类
+     * @param <T>
+     *            表结构
      *
      * @return 表主键的字段名
      */
@@ -60,9 +132,12 @@ public class ClassUtil {
     /**
      * 获取对象中指定字段的值
      *
-     * @param obj       实例对象
-     * @param fieldName 字段名称
-     * @param <T>       实例的类型
+     * @param obj
+     *            实例对象
+     * @param fieldName
+     *            字段名称
+     * @param <T>
+     *            实例的类型
      *
      * @return 字段值
      */
@@ -87,8 +162,10 @@ public class ClassUtil {
     /**
      * 获取表结构类中所有字段的字段名
      *
-     * @param table 表结构类
-     * @param <T>   表结构
+     * @param table
+     *            表结构类
+     * @param <T>
+     *            表结构
      *
      * @return 所有字段的字段名
      */
@@ -114,11 +191,16 @@ public class ClassUtil {
      *
      * Key：属性名称，Value：属性对象
      *
-     * @param clazz 类对象
+     * @param clazz
+     *            类对象
      *
      * @return 除Object外，所有属性信息
      */
     public static Map<String, Field> getAllField(Class<?> clazz) {
+        if (CACHE_FIELD.containsKey(clazz)) {
+            return CACHE_FIELD.get(clazz);
+        }
+
         List<Field> list = new ArrayList<>();
 
         // 添加自身类属性（包含private修饰的属性）
@@ -142,6 +224,7 @@ public class ClassUtil {
             }
         }
 
+        CACHE_FIELD.put(clazz, map);
         return map;
     }
 

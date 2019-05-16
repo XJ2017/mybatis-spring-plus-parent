@@ -231,12 +231,10 @@ public class CommonMapperProvider {
      *            SQL中的参数键值对
      * @param sql
      *            查询SQL
-     * @param <T>
-     *            表结构
      *
      * @return 生成的SQL
      */
-    public <T> String searchListBySQL(@Param("paramMap") Map<String, Object> paramMap, @Param("sql") SQL sql) {
+    public String searchListBySQL(@Param("paramMap") Map<String, Object> paramMap, @Param("sql") SQL sql) {
         return sql.toString();
     }
 
@@ -268,12 +266,10 @@ public class CommonMapperProvider {
      *            SQL中的参数键值对
      * @param sql
      *            查询SQL
-     * @param <T>
-     *            表结构
      *
      * @return 生成的SQL
      */
-    public <T> String searchPageBySQL(@Param("paramMap") Map<String, Object> paramMap, @Param("sql") SQL sql) {
+    public String searchPageBySQL(@Param("paramMap") Map<String, Object> paramMap, @Param("sql") SQL sql) {
         return sql.toString();
     }
 

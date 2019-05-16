@@ -1,6 +1,7 @@
 package com.ddblock.mybatis.spring.boot;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -15,13 +16,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import com.ddblock.mybatis.spring.boot.model.User;
-import com.ddblock.mybatis.spring.boot.model.User2;
 import com.ddblock.mybatis.spring.boot.example.User2Example;
 import com.ddblock.mybatis.spring.boot.example.UserExample;
+import com.ddblock.mybatis.spring.boot.model.ComplexUser;
+import com.ddblock.mybatis.spring.boot.model.User;
+import com.ddblock.mybatis.spring.boot.model.User2;
 import com.ddblock.mybatis.spring.plus.CommonDao;
 import com.ddblock.mybatis.spring.plus.mapper.support.Order;
 import com.ddblock.mybatis.spring.plus.mapper.support.Page;
+import com.ddblock.mybatis.spring.plus.util.ClassUtil;
 
 /**
  * 注意：此处没有使用到Spring的事务管理，因为注入的CommonDao接口的实现对象CommonDaoProxy没有添加事务注解
@@ -42,6 +45,7 @@ public class CommonDaoTest extends AbstractJUnit4SpringContextTests {
     @After
     public void deleteTestData() {
         userDao.deleteBatch(null);
+        user2Dao.deleteBatch(null);
     }
 
     @Test
@@ -140,6 +144,25 @@ public class CommonDaoTest extends AbstractJUnit4SpringContextTests {
     }
 
     @Test
+    public void testSearchComplexListBySQL() {
+        addTestData("name1");
+        addTestData("name2");
+        addTestData("name3");
+
+        addTestUse2Data("name1");
+        addTestUse2Data("name2");
+
+        List<ComplexUser> userList = userDao.searchComplexListBySQL(ComplexUser.class, null, new SQL() {
+            {
+                SELECT(ClassUtil.getSelectSQL(ComplexUser.class));
+                FROM("user");
+                INNER_JOIN("user2 on user.name=user2.name");
+            }
+        });
+        Assert.assertEquals(2, userList.size());
+    }
+
+    @Test
     public void testSearchPage() {
         addTestData();
         addTestData();
@@ -177,6 +200,30 @@ public class CommonDaoTest extends AbstractJUnit4SpringContextTests {
     }
 
     @Test
+    public void testSearchComplexPageBySQL() {
+        addTestData("name1");
+        addTestData("name2");
+        addTestData("name3");
+
+        addTestUse2Data("name1");
+        addTestUse2Data("name2");
+
+        Page<ComplexUser> page = new Page<>();
+        page.setPageNo(1);
+        page.setPageSize(10);
+
+        userDao.searchComplexPageBySQL(ComplexUser.class, page, null, new SQL() {
+            {
+                SELECT(ClassUtil.getSelectSQL(ComplexUser.class));
+                FROM("user");
+                INNER_JOIN("user2 on user.name=user2.name");
+                ORDER_BY("user.id desc");
+            }
+        });
+        Assert.assertEquals(2, page.getResults().size());
+    }
+
+    @Test
     public void testSearchCount() {
         addTestData("name");
         addTestData("name");
@@ -201,15 +248,22 @@ public class CommonDaoTest extends AbstractJUnit4SpringContextTests {
         return addUser;
     }
 
-    private User addTestData(String name) {
+    private void addTestData(String name) {
         User addUser = new User();
         addUser.setId(new Random().nextInt(1000));
         addUser.setName(name);
 
         boolean success = userDao.add(addUser) > 0;
         Assert.assertTrue(success);
+    }
 
-        return addUser;
+    private void addTestUse2Data(String name) {
+        User2 addUser2 = new User2();
+        addUser2.setId(new Random().nextInt(1000));
+        addUser2.setName(name);
+
+        boolean success = user2Dao.add(addUser2) > 0;
+        Assert.assertTrue(success);
     }
 
 }

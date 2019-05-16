@@ -43,15 +43,18 @@ public class CommonMapperTypeHandler extends BaseTypeHandler<Map<String, Object>
     /**
      * 解析结果集中的数据到Map中
      *
-     * @param rsmd 结果集对象的元数据
-     * @param obj 结果集或CallableStatement
+     * @param rsmd
+     *            结果集对象的元数据
+     * @param obj
+     *            结果集或CallableStatement
      *
      * @return 转换为Map存储的结果集
      *
-     * @throws SQLException 异常
+     * @throws SQLException
+     *             异常
      */
     private Map<String, Object> getResults(ResultSetMetaData rsmd, Object obj) throws SQLException {
-        Map<String, Object> row = new HashMap<String, Object>();
+        Map<String, Object> row = new HashMap<>(rsmd.getColumnCount() * 2);
 
         for (int i = 0, n = rsmd.getColumnCount(); i < n; i++) {
             TypeHandler<?> typeHandler;
@@ -76,19 +79,23 @@ public class CommonMapperTypeHandler extends BaseTypeHandler<Map<String, Object>
     /**
      * 根据传入的操作对象类型进行数据的获取
      *
-     * @param typeHandler 类型处理器
-     * @param operate 操作对象
-     * @param columnIndex 列下标
+     * @param typeHandler
+     *            类型处理器
+     * @param operate
+     *            操作对象
+     * @param columnIndex
+     *            列下标
      *
      * @return 列下标对应的值
      *
-     * @throws SQLException 异常
+     * @throws SQLException
+     *             异常
      */
     private Object getValue(TypeHandler typeHandler, Object operate, int columnIndex) throws SQLException {
         if (operate instanceof ResultSet) {
-            return typeHandler.getResult((ResultSet) operate, columnIndex);
+            return typeHandler.getResult((ResultSet)operate, columnIndex);
         } else if (operate instanceof CallableStatement) {
-            return typeHandler.getResult((CallableStatement) operate, columnIndex);
+            return typeHandler.getResult((CallableStatement)operate, columnIndex);
         } else {
             throw new RuntimeException("不能处理的类型！");
         }

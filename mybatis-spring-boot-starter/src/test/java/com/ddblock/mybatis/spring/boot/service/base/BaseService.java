@@ -1,13 +1,14 @@
 package com.ddblock.mybatis.spring.boot.service.base;
 
-import com.ddblock.mybatis.spring.plus.mapper.support.BaseExample;
-import com.ddblock.mybatis.spring.plus.mapper.support.Order;
-import com.ddblock.mybatis.spring.plus.mapper.support.Page;
-import org.apache.ibatis.jdbc.SQL;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.ibatis.jdbc.SQL;
+
+import com.ddblock.mybatis.spring.plus.mapper.support.BaseExample;
+import com.ddblock.mybatis.spring.plus.mapper.support.Order;
+import com.ddblock.mybatis.spring.plus.mapper.support.Page;
 
 /**
  * 基础服务
@@ -112,6 +113,22 @@ public interface BaseService<M, E extends BaseExample> {
     /**
      * 根据自定义SQL，查询符合条件的记录集合
      *
+     * @param complexTable
+     *            复合表模型
+     * @param paramMap
+     *            SQL中的参数键值对
+     * @param sql
+     *            查询SQL
+     *
+     * @return 返回的变更集合
+     * @param <C>
+     *            复合表模型
+     */
+    <C> List<C> searchComplexListBySQL(Class<C> complexTable, Map<String, Object> paramMap, SQL sql);
+
+    /**
+     * 根据自定义SQL，查询符合条件的记录集合
+     *
      * @param page
      *            分页信息
      * @param example
@@ -132,6 +149,22 @@ public interface BaseService<M, E extends BaseExample> {
      *            查询SQL
      */
     void searchPageBySQL(Page<M> page, Map<String, Object> paramMap, SQL sql);
+
+    /**
+     * 根据自定义SQL，查询符合条件的记录集合
+     *
+     * @param complexTable
+     *            复合表模型类
+     * @param page
+     *            分页信息
+     * @param paramMap
+     *            SQL中的参数键值对
+     * @param sql
+     *            查询SQL
+     * @param <C>
+     *            复合表模型
+     */
+    <C> void searchComplexPageBySQL(Class<C> complexTable, Page<C> page, Map<String, Object> paramMap, SQL sql);
 
     /**
      * 获取符合条件的总记录数

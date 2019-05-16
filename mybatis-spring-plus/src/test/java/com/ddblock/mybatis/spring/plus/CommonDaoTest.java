@@ -9,14 +9,17 @@ import org.apache.ibatis.jdbc.SQL;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
 
+import com.ddblock.mybatis.spring.plus.bean.ComplexUser;
 import com.ddblock.mybatis.spring.plus.bean.User;
 import com.ddblock.mybatis.spring.plus.bean.User2;
 import com.ddblock.mybatis.spring.plus.example.User2Example;
 import com.ddblock.mybatis.spring.plus.example.UserExample;
 import com.ddblock.mybatis.spring.plus.mapper.support.Order;
 import com.ddblock.mybatis.spring.plus.mapper.support.Page;
+import com.ddblock.mybatis.spring.plus.util.ClassUtil;
 
 /**
  * 测试通用DAO
@@ -29,10 +32,14 @@ public class CommonDaoTest {
 
     @After
     public void deleteTestData() {
-        CommonDaoFactory.withTransaction(() -> {
-            CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
-            userDao.deleteBatch(null);
-        });
+        CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
+        userDao.deleteBatch(null);
+
+        CommonDao<User2, User2Example> user2Dao = CommonDaoFactory.getCommonDao(User2.class, User2Example.class);
+        user2Dao.deleteBatch(null);
+
+        // 提交线程级别事务
+        CommonDaoFactory.commit();
     }
 
     @Test
@@ -42,10 +49,8 @@ public class CommonDaoTest {
         addUser.setName("name1");
         addUser.setSex(true);
 
-        CommonDaoFactory.withTransaction(() -> {
-            CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
-            userDao.add(addUser);
-        });
+        CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
+        userDao.add(addUser);
     }
 
     @Test
@@ -54,15 +59,8 @@ public class CommonDaoTest {
         addUser.setId(1);
         addUser.setName("name121211");
 
-        CommonDaoFactory.withTransaction(() -> {
-            CommonDao<User2, User2Example> userDao = CommonDaoFactory.getCommonDao(User2.class, User2Example.class);
-            userDao.add(addUser);
-        });
-
-        CommonDaoFactory.withTransaction(() -> {
-            CommonDao<User2, User2Example> userDao = CommonDaoFactory.getCommonDao(User2.class, User2Example.class);
-            userDao.delete(addUser.getId());
-        });
+        CommonDao<User2, User2Example> userDao = CommonDaoFactory.getCommonDao(User2.class, User2Example.class);
+        userDao.add(addUser);
     }
 
     @Test
@@ -74,16 +72,11 @@ public class CommonDaoTest {
         updateUser.setSex(true);
 
         LOGGER.info("不处理空值字段");
-        CommonDaoFactory.withTransaction(() -> {
-            CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
-            userDao.update(updateUser, false);
-        });
+        CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
+        userDao.update(updateUser, false);
 
         LOGGER.info("处理空值字段");
-        CommonDaoFactory.withTransaction(() -> {
-            CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
-            userDao.update(updateUser, true);
-        });
+        userDao.update(updateUser, true);
     }
 
     @Test
@@ -100,11 +93,9 @@ public class CommonDaoTest {
         criteria.andIdEqualTo(newUser.getId());
 
         LOGGER.info("不处理空值字段");
-        CommonDaoFactory.withTransaction(() -> {
-            CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
-            int changeRow = userDao.updateBatch(setUser, example, false);
-            LOGGER.info("变更数据记录数：" + changeRow);
-        });
+        CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
+        int changeRow = userDao.updateBatch(setUser, example, false);
+        LOGGER.info("变更数据记录数：" + changeRow);
     }
 
     @Test
@@ -112,11 +103,9 @@ public class CommonDaoTest {
         User newUser = addTestData();
         addTestData();
 
-        CommonDaoFactory.withTransaction(() -> {
-            CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
-            int changeRow = userDao.delete(newUser.getId());
-            LOGGER.info("变更数据记录数：" + changeRow);
-        });
+        CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
+        int changeRow = userDao.delete(newUser.getId());
+        LOGGER.info("变更数据记录数：" + changeRow);
     }
 
     @Test
@@ -124,11 +113,9 @@ public class CommonDaoTest {
         addTestData();
         addTestData();
 
-        CommonDaoFactory.withTransaction(() -> {
-            CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
-            int changeRow = userDao.deleteBatch(null);
-            LOGGER.info("变更数据记录数：" + changeRow);
-        });
+        CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
+        int changeRow = userDao.deleteBatch(null);
+        LOGGER.info("变更数据记录数：" + changeRow);
     }
 
     @Test
@@ -181,6 +168,26 @@ public class CommonDaoTest {
     }
 
     @Test
+    public void testSearchComplexListBySQL() {
+        addTestData("name1");
+        addTestData("name2");
+        addTestData("name3");
+
+        addTestUse2Data("name1");
+        addTestUse2Data("name2");
+
+        CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
+        List<ComplexUser> userList = userDao.searchComplexListBySQL(ComplexUser.class, null, new SQL() {
+            {
+                SELECT(ClassUtil.getSelectSQL(ComplexUser.class));
+                FROM("user");
+                INNER_JOIN("user2 on user.name=user2.name");
+            }
+        });
+        Assert.assertEquals(2, userList.size());
+    }
+
+    @Test
     public void testSearchPage() {
         addTestData();
         addTestData();
@@ -222,6 +229,31 @@ public class CommonDaoTest {
     }
 
     @Test
+    public void testSearchComplexPageBySQL() {
+        addTestData("name1");
+        addTestData("name2");
+        addTestData("name3");
+
+        addTestUse2Data("name1");
+        addTestUse2Data("name2");
+
+        Page<ComplexUser> page = new Page<>();
+        page.setPageNo(1);
+        page.setPageSize(10);
+
+        CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
+        userDao.searchComplexPageBySQL(ComplexUser.class, page, null, new SQL() {
+            {
+                SELECT(ClassUtil.getSelectSQL(ComplexUser.class));
+                FROM("user");
+                INNER_JOIN("user2 on user.name=user2.name");
+                ORDER_BY("user.id desc");
+            }
+        });
+        Assert.assertEquals(2, page.getResults().size());
+    }
+
+    @Test
     public void testSearchCount() {
         addTestData("name1");
         addTestData("name1");
@@ -242,10 +274,8 @@ public class CommonDaoTest {
         addUser.setName("name" + addUser.getId());
         addUser.setSex(addUser.getId() > 500);
 
-        CommonDaoFactory.withTransaction(() -> {
-            CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
-            userDao.add(addUser);
-        });
+        CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
+        userDao.add(addUser);
 
         return addUser;
     }
@@ -256,12 +286,19 @@ public class CommonDaoTest {
         addUser.setName(name);
         addUser.setSex(addUser.getId() > 500);
 
-        CommonDaoFactory.withTransaction(() -> {
-            CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
-            userDao.add(addUser);
-        });
+        CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
+        userDao.add(addUser);
 
         return addUser;
+    }
+
+    private void addTestUse2Data(String name) {
+        User2 addUser2 = new User2();
+        addUser2.setId(new Random().nextInt(1000));
+        addUser2.setName(name);
+
+        CommonDao<User2, User2Example> user2Dao = CommonDaoFactory.getCommonDao(User2.class, User2Example.class);
+        user2Dao.add(addUser2);
     }
 
 }

@@ -94,4 +94,12 @@ public class CommonDaoFactory {
         }
     }
 
+    /**
+     * 提交当前线程的事务
+     */
+    public static void commit() {
+        SqlSession sqlSession = SQL_SESSION_TL.get();
+        sqlSession.commit();
+    }
+
 }

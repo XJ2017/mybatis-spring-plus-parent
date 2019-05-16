@@ -114,6 +114,22 @@ public interface CommonDao<M, E extends BaseExample> {
     /**
      * 根据自定义SQL，查询符合条件的记录集合
      *
+     * @param complexTable
+     *            复合表模型
+     * @param paramMap
+     *            SQL中的参数键值对
+     * @param sql
+     *            查询SQL
+     *
+     * @return 返回的变更集合
+     * @param <C>
+     *            复合表模型
+     */
+    <C> List<C> searchComplexListBySQL(Class<C> complexTable, Map<String, Object> paramMap, SQL sql);
+
+    /**
+     * 根据自定义SQL，查询符合条件的记录集合
+     *
      * @param page
      *            分页信息
      * @param example
@@ -134,6 +150,22 @@ public interface CommonDao<M, E extends BaseExample> {
      *            查询SQL
      */
     void searchPageBySQL(Page<M> page, Map<String, Object> paramMap, SQL sql);
+
+    /**
+     * 根据自定义SQL，查询符合条件的记录集合
+     *
+     * @param complexTable
+     *            复合表模型类（TODO 因为从Page中获取不到自身泛型类，故需要以参数传入）
+     * @param page
+     *            分页信息
+     * @param paramMap
+     *            SQL中的参数键值对
+     * @param sql
+     *            查询SQL
+     * @param <C>
+     *            复合表模型
+     */
+    <C> void searchComplexPageBySQL(Class<C> complexTable, Page<C> page, Map<String, Object> paramMap, SQL sql);
 
     /**
      * 获取符合条件的总记录数
