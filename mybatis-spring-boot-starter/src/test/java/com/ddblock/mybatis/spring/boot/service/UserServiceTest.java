@@ -20,7 +20,6 @@ import com.ddblock.mybatis.spring.boot.example.UserExample;
 import com.ddblock.mybatis.spring.boot.model.ComplexUser;
 import com.ddblock.mybatis.spring.boot.model.User;
 import com.ddblock.mybatis.spring.boot.model.User2;
-import com.ddblock.mybatis.spring.plus.mapper.support.Order;
 import com.ddblock.mybatis.spring.plus.mapper.support.Page;
 import com.ddblock.mybatis.spring.plus.util.ClassUtil;
 
@@ -130,7 +129,8 @@ public class UserServiceTest extends AbstractJUnit4SpringContextTests {
         userService.searchList(example);
 
         LOGGER.info("带Order by");
-        userService.searchList(example, new Order("id", false));
+        example.setOrderByClause("id DESC");
+        userService.searchList(example);
     }
 
     @Test
@@ -183,7 +183,9 @@ public class UserServiceTest extends AbstractJUnit4SpringContextTests {
         userService.searchPage(page, null);
 
         LOGGER.info("带Order by");
-        userService.searchPage(page, null, new Order("id", false));
+        UserExample example = new UserExample();
+        example.setOrderByClause("id DESC");
+        userService.searchPage(page, example);
     }
 
     @Test

@@ -7,7 +7,6 @@ import java.util.Map;
 import org.apache.ibatis.jdbc.SQL;
 
 import com.ddblock.mybatis.spring.plus.mapper.support.BaseExample;
-import com.ddblock.mybatis.spring.plus.mapper.support.Order;
 import com.ddblock.mybatis.spring.plus.mapper.support.Page;
 
 /**
@@ -92,12 +91,10 @@ public interface CommonDao<M, E extends BaseExample> {
      *
      * @param example
      *            查询条件
-     * @param orders
-     *            排序规则
      *
      * @return 返回的变更集合
      */
-    List<M> searchList(E example, Order... orders);
+    List<M> searchList(E example);
 
     /**
      * 根据自定义SQL，查询符合条件的记录集合
@@ -134,10 +131,8 @@ public interface CommonDao<M, E extends BaseExample> {
      *            分页信息
      * @param example
      *            查询条件
-     * @param orders
-     *            排序规则
      */
-    void searchPage(Page<M> page, E example, Order... orders);
+    void searchPage(Page<M> page, E example);
 
     /**
      * 根据自定义SQL，查询符合条件的记录集合

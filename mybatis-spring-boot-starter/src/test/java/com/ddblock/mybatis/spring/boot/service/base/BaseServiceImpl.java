@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ddblock.mybatis.spring.plus.CommonDao;
 import com.ddblock.mybatis.spring.plus.mapper.support.BaseExample;
-import com.ddblock.mybatis.spring.plus.mapper.support.Order;
 import com.ddblock.mybatis.spring.plus.mapper.support.Page;
 
 /**
@@ -56,8 +55,8 @@ public abstract class BaseServiceImpl<M, E extends BaseExample> implements BaseS
     }
 
     @Override
-    public List<M> searchList(E example, Order... orders) {
-        return commonDao.searchList(example, orders);
+    public List<M> searchList(E example) {
+        return commonDao.searchList(example);
     }
 
     @Override
@@ -71,8 +70,8 @@ public abstract class BaseServiceImpl<M, E extends BaseExample> implements BaseS
     }
 
     @Override
-    public void searchPage(Page<M> page, E example, Order... orders) {
-        commonDao.searchPage(page, example, orders);
+    public void searchPage(Page<M> page, E example) {
+        commonDao.searchPage(page, example);
     }
 
     @Override

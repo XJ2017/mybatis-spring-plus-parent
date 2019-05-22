@@ -7,7 +7,6 @@ import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.jdbc.SQL;
 
 import com.ddblock.mybatis.spring.plus.mapper.support.BaseExample;
-import com.ddblock.mybatis.spring.plus.mapper.support.Order;
 
 /**
  * 操作DB的通用处理Mapper
@@ -119,8 +118,6 @@ public interface CommonMapper {
      *            查询条件
      * @param resultHandler
      *            结果类型处理器
-     * @param orders
-     *            排序规则
      *
      * @param <T>
      *            表模型类
@@ -130,7 +127,7 @@ public interface CommonMapper {
     @ResultType(value = CommonMapperResultType.class)
     @SelectProvider(type = CommonMapperProvider.class, method = "searchList")
     <T, E extends BaseExample> void searchList(@Param("table") Class<T> table, @Param("example") E example,
-        CommonMapperResultHandler resultHandler, @Param("orders") Order... orders);
+        CommonMapperResultHandler resultHandler);
 
     /**
      * 根据自定义SQL，查询符合条件的记录集合
@@ -158,8 +155,6 @@ public interface CommonMapper {
      *            查询对象
      * @param resultHandler
      *            结果类型处理器
-     * @param orders
-     *            排序规则
      * @param <T>
      *            表模型类
      * @param <E>
@@ -168,7 +163,7 @@ public interface CommonMapper {
     @ResultType(value = CommonMapperResultType.class)
     @SelectProvider(type = CommonMapperProvider.class, method = "searchPage")
     <T, E extends BaseExample> void searchPage(@Param("table") Class<T> table, @Param("example") E example,
-        CommonMapperResultHandler resultHandler, @Param("orders") Order... orders);
+        CommonMapperResultHandler resultHandler);
 
     /**
      * 根据自定义SQL，查询符合条件的记录集合

@@ -10,7 +10,6 @@ import org.apache.ibatis.jdbc.SQL;
 import com.ddblock.mybatis.spring.plus.mapper.CommonMapper;
 import com.ddblock.mybatis.spring.plus.mapper.CommonMapperResultHandler;
 import com.ddblock.mybatis.spring.plus.mapper.support.BaseExample;
-import com.ddblock.mybatis.spring.plus.mapper.support.Order;
 import com.ddblock.mybatis.spring.plus.mapper.support.Page;
 
 /**
@@ -72,9 +71,9 @@ public class CommonDaoProxy<M, E extends BaseExample> implements CommonDao<M, E>
     }
 
     @Override
-    public List<M> searchList(E example, Order... orders) {
+    public List<M> searchList(E example) {
         CommonMapperResultHandler<M> resultHandler = new CommonMapperResultHandler<>(table);
-        mapper.searchList(table, example, resultHandler, orders);
+        mapper.searchList(table, example, resultHandler);
         return resultHandler.getDataList();
     }
 
@@ -93,9 +92,9 @@ public class CommonDaoProxy<M, E extends BaseExample> implements CommonDao<M, E>
     }
 
     @Override
-    public void searchPage(Page<M> page, E example, Order... orders) {
+    public void searchPage(Page<M> page, E example) {
         CommonMapperResultHandler<M> resultHandler = new CommonMapperResultHandler<>(table, page);
-        mapper.searchPage(table, example, resultHandler, orders);
+        mapper.searchPage(table, example, resultHandler);
     }
 
     @Override

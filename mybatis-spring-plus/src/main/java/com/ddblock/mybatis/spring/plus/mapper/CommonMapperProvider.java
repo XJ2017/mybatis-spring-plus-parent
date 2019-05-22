@@ -13,7 +13,6 @@ import org.apache.ibatis.jdbc.SQL;
 import com.ddblock.mybatis.spring.plus.mapper.support.BaseCriteria;
 import com.ddblock.mybatis.spring.plus.mapper.support.BaseExample;
 import com.ddblock.mybatis.spring.plus.mapper.support.Criterion;
-import com.ddblock.mybatis.spring.plus.mapper.support.Order;
 import com.ddblock.mybatis.spring.plus.util.ClassUtil;
 
 /**
@@ -198,8 +197,6 @@ public class CommonMapperProvider {
      *            表模型
      * @param example
      *            查询条件
-     * @param orders
-     *            排序规则
      *
      * @param <T>
      *            表模型类
@@ -207,17 +204,15 @@ public class CommonMapperProvider {
      *            表模型查询类
      * @return 生成的SQL
      */
-    public <T, E extends BaseExample> String searchList(@Param("table") Class<T> table, @Param("example") E example,
-        @Param("orders") Order... orders) {
+    public <T, E extends BaseExample> String searchList(@Param("table") Class<T> table, @Param("example") E example) {
         return new SQL() {
             {
                 SELECT("*");
                 FROM(getTableName(table));
 
                 applyWhere(this, example, true);
-
-                for (Order order : orders) {
-                    ORDER_BY(order.toSqlString());
+                if (example != null && example.getOrderByClause() != null) {
+                    this.ORDER_BY(example.getOrderByClause());
                 }
             }
 
@@ -245,8 +240,6 @@ public class CommonMapperProvider {
      *            表模型
      * @param example
      *            查询条件
-     * @param orders
-     *            排序规则
      *
      * @param <T>
      *            表模型类
@@ -254,9 +247,8 @@ public class CommonMapperProvider {
      *            表模型查询类
      * @return 生成的SQL
      */
-    public <T, E extends BaseExample> String searchPage(@Param("table") Class<T> table, @Param("example") E example,
-        @Param("orders") Order... orders) {
-        return searchList(table, example, orders);
+    public <T, E extends BaseExample> String searchPage(@Param("table") Class<T> table, @Param("example") E example) {
+        return searchList(table, example);
     }
 
     /**

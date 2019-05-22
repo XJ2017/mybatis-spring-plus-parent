@@ -17,7 +17,6 @@ import com.ddblock.mybatis.spring.plus.bean.User;
 import com.ddblock.mybatis.spring.plus.bean.User2;
 import com.ddblock.mybatis.spring.plus.example.User2Example;
 import com.ddblock.mybatis.spring.plus.example.UserExample;
-import com.ddblock.mybatis.spring.plus.mapper.support.Order;
 import com.ddblock.mybatis.spring.plus.mapper.support.Page;
 import com.ddblock.mybatis.spring.plus.util.ClassUtil;
 
@@ -141,8 +140,8 @@ public class CommonDaoTest {
         LOGGER.info("不带Order by");
         userDao.searchList(example);
 
-        LOGGER.info("带Order by");
-        userDao.searchList(example, new Order("id", false));
+        example.setOrderByClause("id DESC");
+        userDao.searchList(example);
     }
 
     @Test
@@ -201,7 +200,9 @@ public class CommonDaoTest {
         userDao.searchPage(page, null);
 
         LOGGER.info("带Order by");
-        userDao.searchPage(page, null, new Order("id", false));
+        UserExample example = new UserExample();
+        example.setOrderByClause("id DESC");
+        userDao.searchPage(page, null);
     }
 
     @Test

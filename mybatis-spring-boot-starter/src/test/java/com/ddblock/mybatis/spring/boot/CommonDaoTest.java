@@ -22,7 +22,6 @@ import com.ddblock.mybatis.spring.boot.model.ComplexUser;
 import com.ddblock.mybatis.spring.boot.model.User;
 import com.ddblock.mybatis.spring.boot.model.User2;
 import com.ddblock.mybatis.spring.plus.CommonDao;
-import com.ddblock.mybatis.spring.plus.mapper.support.Order;
 import com.ddblock.mybatis.spring.plus.mapper.support.Page;
 import com.ddblock.mybatis.spring.plus.util.ClassUtil;
 
@@ -121,7 +120,8 @@ public class CommonDaoTest extends AbstractJUnit4SpringContextTests {
         userDao.searchList(example);
 
         LOGGER.info("带Order by");
-        userDao.searchList(example, new Order("id", false));
+        example.setOrderByClause("id DESC");
+        userDao.searchList(example);
     }
 
     @Test
@@ -174,7 +174,9 @@ public class CommonDaoTest extends AbstractJUnit4SpringContextTests {
         userDao.searchPage(page, null);
 
         LOGGER.info("带Order by");
-        userDao.searchPage(page, null, new Order("id", false));
+        UserExample example = new UserExample();
+        example.setOrderByClause("id DESC");
+        userDao.searchPage(page, example);
     }
 
     @Test
