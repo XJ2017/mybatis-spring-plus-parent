@@ -147,6 +147,25 @@ public interface CommonMapper {
         CommonMapperResultHandler resultHandler);
 
     /**
+     * 根据自定义SQL，查询符合条件的记录集合
+     *
+     * @param example
+     *            查询条件
+     * @param sql
+     *            查询SQL
+     * @param resultHandler
+     *            结果类型处理器
+     * @param <T>
+     *            表结构
+     * @param <E>
+     *            表模型查询类
+     */
+    @ResultType(value = CommonMapperResultType.class)
+    @SelectProvider(type = CommonMapperProvider.class, method = "searchListBySQL2")
+    <T, E extends BaseExample> void searchListBySQL2(@Param("example") E example, @Param("sql") SQL sql,
+        CommonMapperResultHandler resultHandler);
+
+    /**
      * 根据查询条件，查询符合条件的记录集合
      *
      * @param table

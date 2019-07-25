@@ -19,6 +19,7 @@ import com.ddblock.mybatis.spring.plus.example.User2Example;
 import com.ddblock.mybatis.spring.plus.example.UserExample;
 import com.ddblock.mybatis.spring.plus.mapper.support.Page;
 import com.ddblock.mybatis.spring.plus.util.ClassUtil;
+import com.ddblock.mybatis.spring.plus.util.SqlUtil;
 
 /**
  * 测试通用DAO
@@ -162,6 +163,27 @@ public class CommonDaoTest {
                 FROM("user");
                 WHERE("id <> #{paramMap.id}");
                 ORDER_BY("id desc limit #{paramMap.begin}, #{paramMap.end}");
+            }
+        });
+    }
+
+    @Test
+    public void testSearchListBySQL2() {
+        addTestData();
+        addTestData();
+        addTestData();
+
+        CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
+
+        UserExample example = new UserExample();
+        UserExample.Criteria criteria = example.createCriteria();
+        criteria.andIdEqualTo(1);
+
+        List<User> userList = userDao.searchListBySQL(example, new SQL() {
+            {
+                SELECT("*");
+                FROM("user");
+                SqlUtil.applyWhere(this, example);
             }
         });
     }

@@ -111,6 +111,18 @@ public interface CommonDao<M, E extends BaseExample> {
     /**
      * 根据自定义SQL，查询符合条件的记录集合
      *
+     * @param example
+     *            查询条件
+     * @param sql
+     *            查询SQL
+     *
+     * @return 返回的变更集合
+     */
+    List<M> searchListBySQL(E example, SQL sql);
+
+    /**
+     * 根据自定义SQL，查询符合条件的记录集合
+     *
      * @param complexTable
      *            复合表模型
      * @param paramMap

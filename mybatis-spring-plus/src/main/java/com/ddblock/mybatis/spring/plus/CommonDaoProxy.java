@@ -85,6 +85,13 @@ public class CommonDaoProxy<M, E extends BaseExample> implements CommonDao<M, E>
     }
 
     @Override
+    public List<M> searchListBySQL(E example, SQL sql) {
+        CommonMapperResultHandler<M> resultHandler = new CommonMapperResultHandler<>(table);
+        mapper.searchListBySQL2(example, sql, resultHandler);
+        return resultHandler.getDataList();
+    }
+
+    @Override
     public <C> List<C> searchComplexListBySQL(Class<C> complexTable, Map<String, Object> paramMap, SQL sql) {
         CommonMapperResultHandler<C> resultHandler = new CommonMapperResultHandler<>(complexTable);
         mapper.searchListBySQL(paramMap, sql, resultHandler);
