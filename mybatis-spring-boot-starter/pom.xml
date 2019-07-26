@@ -15,7 +15,7 @@
     <description>基于对接SpringBoot应用</description>
 
     <properties>
-        <mybatis-spring-plus.version>1.0.0-SNAPSHOT</mybatis-spring-plus.version>
+        <mybatis-spring-plus.version>1.1.0</mybatis-spring-plus.version>
     </properties>
 
     <dependencies>
