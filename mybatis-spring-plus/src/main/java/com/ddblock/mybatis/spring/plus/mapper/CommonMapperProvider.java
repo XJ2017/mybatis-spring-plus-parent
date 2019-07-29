@@ -207,11 +207,7 @@ public class CommonMapperProvider {
             {
                 SELECT("*");
                 FROM(getTableName(table));
-
                 SqlUtil.applyWhere(this, example);
-                if (example != null && example.getOrderByClause() != null) {
-                    this.ORDER_BY(example.getOrderByClause());
-                }
             }
 
         }.toString();
@@ -297,7 +293,6 @@ public class CommonMapperProvider {
             {
                 SELECT("count(1)");
                 FROM(getTableName(table));
-
                 SqlUtil.applyWhere(this, example);
             }
 

@@ -131,6 +131,10 @@ public class SqlUtil {
         if (sb.length() > 0) {
             sql.WHERE(sb.toString());
         }
+
+        if (example.getOrderByClause() != null) {
+            sql.ORDER_BY(example.getOrderByClause());
+        }
     }
 
 }
