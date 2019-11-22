@@ -168,6 +168,21 @@ public class CommonDaoTest {
     }
 
     @Test
+    public void testUpdate1() {
+        User user = addTestData();
+
+        CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
+
+        userDao.searchListBySQL(new HashMap<>(), new SQL() {
+            {
+                UPDATE("user");
+                SET("name=name+'11'");
+                WHERE("id=" + user.getId());
+            }
+        });
+    }
+
+    @Test
     public void testSearchListBySQL2() {
         addTestData();
         addTestData();

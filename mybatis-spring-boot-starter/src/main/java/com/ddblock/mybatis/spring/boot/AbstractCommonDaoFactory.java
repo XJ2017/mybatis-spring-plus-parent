@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.ibatis.session.SqlSession;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 
 import com.ddblock.mybatis.spring.plus.CommonDao;
@@ -25,6 +26,7 @@ public abstract class AbstractCommonDaoFactory {
     private static final Map<Class<?>, CommonDaoProxy> CACHE_MAP = new ConcurrentHashMap<>();
 
     @Autowired
+    @Qualifier("sqlSessionTemplate")
     private SqlSession sqlSession;
 
     protected <T, E extends BaseExample> CommonDao<T, E> addDaoBean(Class<T> table, Class<E> example) {

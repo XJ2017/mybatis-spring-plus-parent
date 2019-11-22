@@ -5,6 +5,8 @@ package com.ddblock.mybatis.spring.plus.util;
  * Date 2019-03-12 16:14
  */
 public class StringUtil {
+    private static final String DB_SPLIT = "_";
+    private static final char DB_SPLIT_CHAR = '_';
 
     /**
      * 判断字符串对象是否为空或则长度为零（没有执行trim()方法）
@@ -28,13 +30,18 @@ public class StringUtil {
         if (isEmpty(originName))
             return null;
 
+        // 如果以"_"开头，则不处理
+        if (originName.startsWith(DB_SPLIT)) {
+            return originName;
+        }
+
         StringBuilder sb = new StringBuilder();
         char[] chars = originName.toCharArray();
         for (int i = 0; i < chars.length; i++) {
             char c = chars[i];
             if (c >= 65 && c <= 90) {
                 if (i != 0)
-                    sb.append('_');
+                    sb.append(DB_SPLIT_CHAR);
                 c = (char) (c + 32);
             }
             sb.append(c);
@@ -54,11 +61,16 @@ public class StringUtil {
         if (isEmpty(originName))
             return null;
 
+        // 如果以"_"开头，则不处理
+        if (originName.startsWith(DB_SPLIT)) {
+            return originName;
+        }
+
         StringBuilder sb = new StringBuilder();
         char[] chars = originName.toCharArray();
         for (int i = 0; i < chars.length; i++) {
             char c = chars[i];
-            if (c == '_') {
+            if (c == DB_SPLIT_CHAR) {
                 i++;
                 c = (char) (chars[i] - 32);
             }

@@ -1,6 +1,7 @@
 package com.ddblock.mybatis.spring.plus.mapper.support;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -48,6 +49,13 @@ public abstract class BaseCriteria {
             throw new RuntimeException("Between values for " + property + " cannot be null");
         }
         criteria.add(new Criterion(condition, value1, value2));
+    }
+
+    protected void addCriterionForJDBCDate(String condition, Date value, String property) {
+        if (value == null) {
+            throw new RuntimeException("Value for " + property + " cannot be null");
+        }
+        addCriterion(condition, new java.sql.Date(value.getTime()), property);
     }
 
 }
