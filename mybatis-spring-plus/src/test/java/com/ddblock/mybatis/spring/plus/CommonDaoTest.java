@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.ddblock.mybatis.spring.plus.bean.ComplexUser2;
 import org.apache.ibatis.jdbc.SQL;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -176,7 +177,7 @@ public class CommonDaoTest {
         userDao.searchListBySQL(new HashMap<>(), new SQL() {
             {
                 UPDATE("user");
-                SET("name=name+'11'");
+                SET("name=CONCAT(name, '1')");
                 WHERE("id=" + user.getId());
             }
         });
@@ -218,6 +219,26 @@ public class CommonDaoTest {
                 SELECT(ClassUtil.getSelectSQL(ComplexUser.class));
                 FROM("user");
                 INNER_JOIN("user2 on user.name=user2.name");
+            }
+        });
+        Assert.assertEquals(2, userList.size());
+    }
+
+    @Test
+    public void testSearchComplexListBySQL2() {
+        addTestData("name1");
+        addTestData("name2");
+        addTestData("name3");
+
+        addTestUse2Data("name1");
+        addTestUse2Data("name2");
+
+        CommonDao<User, UserExample> userDao = CommonDaoFactory.getCommonDao(User.class, UserExample.class);
+        List<ComplexUser2> userList = userDao.searchComplexListBySQL(ComplexUser2.class, null, new SQL() {
+            {
+                SELECT(ClassUtil.getSelectSQL(ComplexUser2.class));
+                FROM("user u");
+                INNER_JOIN("user2 u2 on u.name=u2.name");
             }
         });
         Assert.assertEquals(2, userList.size());

@@ -1,5 +1,7 @@
 package com.ddblock.mybatis.spring.plus.mapper;
 
+import static com.ddblock.mybatis.spring.plus.util.ClassUtil.DB_SELECT_SPLIT;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,8 +17,6 @@ import com.ddblock.mybatis.spring.plus.model.annotation.Table;
 import com.ddblock.mybatis.spring.plus.util.ClassUtil;
 import com.ddblock.mybatis.spring.plus.util.ExceptionUtil;
 import com.ddblock.mybatis.spring.plus.util.StringUtil;
-
-import static com.ddblock.mybatis.spring.plus.util.ClassUtil.DB_SELECT_SPLIT;
 
 /**
  * 将数据库中查询出来的Map数据，转换为Model数据
@@ -76,7 +76,7 @@ public class CommonMapperResultHandler<T> implements ResultHandler {
                 Class<?> subTable = field.getType();
                 // 处理单表字段
                 if (subTable.getDeclaredAnnotation(Table.class) != null) {
-                    String subDBTableName = ClassUtil.getTableName(subTable);
+                    String subDBTableName = field.getName();
                     Map<String, Field> subTableFieldMap = ClassUtil.getAllField(subTable);
                     subTableFieldMap.forEach(
                         (subFieldName, subField) -> fieldMap.put(subDBTableName + "." + subFieldName, subField));
