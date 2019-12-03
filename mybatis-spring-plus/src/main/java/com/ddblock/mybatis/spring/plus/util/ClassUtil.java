@@ -71,7 +71,7 @@ public class ClassUtil {
             // 处理单表字段
             Class<?> subTable = field.getType();
             if (subTable.getDeclaredAnnotation(Table.class) != null) {
-                String subDBTableName = field.getName();
+                String subDBTableName = formatToDBName(field.getName());
 
                 Map<String, Field> fields = getAllField(subTable);
                 fields.forEach((subFieldName, subField) -> {

@@ -76,7 +76,7 @@ public class CommonMapperResultHandler<T> implements ResultHandler {
                 Class<?> subTable = field.getType();
                 // 处理单表字段
                 if (subTable.getDeclaredAnnotation(Table.class) != null) {
-                    String subDBTableName = field.getName();
+                    String subDBTableName = StringUtil.formatToDBName(field.getName());
                     Map<String, Field> subTableFieldMap = ClassUtil.getAllField(subTable);
                     subTableFieldMap.forEach(
                         (subFieldName, subField) -> fieldMap.put(subDBTableName + "." + subFieldName, subField));
