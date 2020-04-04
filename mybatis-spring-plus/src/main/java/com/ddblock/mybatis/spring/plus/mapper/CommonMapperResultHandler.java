@@ -1,6 +1,13 @@
 package com.ddblock.mybatis.spring.plus.mapper;
 
-import static com.ddblock.mybatis.spring.plus.util.ClassUtil.DB_SELECT_SPLIT;
+import com.ddblock.mybatis.spring.plus.mapper.support.Page;
+import com.ddblock.mybatis.spring.plus.model.annotation.ComplexTable;
+import com.ddblock.mybatis.spring.plus.model.annotation.Table;
+import com.ddblock.mybatis.spring.plus.util.ClassUtil;
+import com.ddblock.mybatis.spring.plus.util.ExceptionUtil;
+import com.ddblock.mybatis.spring.plus.util.StringUtil;
+import org.apache.ibatis.session.ResultContext;
+import org.apache.ibatis.session.ResultHandler;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -8,22 +15,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ibatis.session.ResultContext;
-import org.apache.ibatis.session.ResultHandler;
-
-import com.ddblock.mybatis.spring.plus.mapper.support.Page;
-import com.ddblock.mybatis.spring.plus.model.annotation.ComplexTable;
-import com.ddblock.mybatis.spring.plus.model.annotation.Table;
-import com.ddblock.mybatis.spring.plus.util.ClassUtil;
-import com.ddblock.mybatis.spring.plus.util.ExceptionUtil;
-import com.ddblock.mybatis.spring.plus.util.StringUtil;
+import static com.ddblock.mybatis.spring.plus.util.ClassUtil.DB_SELECT_SPLIT;
 
 /**
  * 将数据库中查询出来的Map数据，转换为Model数据
  *
- * @param <T>
- *            表模型、复合表模型（由多个表模型组成）
- *
+ * @param <T> 表模型、复合表模型（由多个表模型组成）
  * @author XiaoJia
  * @since 2019-03-06 16:27
  */
@@ -76,10 +73,11 @@ public class CommonMapperResultHandler<T> implements ResultHandler {
                 Class<?> subTable = field.getType();
                 // 处理单表字段
                 if (subTable.getDeclaredAnnotation(Table.class) != null) {
-                    String subDBTableName = StringUtil.formatToDBName(field.getName());
+                    String subDBTableName = fieldName.equalsIgnoreCase(
+                            subTable.getSimpleName()) ? StringUtil.formatToDBName(fieldName) : fieldName;
                     Map<String, Field> subTableFieldMap = ClassUtil.getAllField(subTable);
                     subTableFieldMap.forEach(
-                        (subFieldName, subField) -> fieldMap.put(subDBTableName + "." + subFieldName, subField));
+                            (subFieldName, subField) -> fieldMap.put(subDBTableName + "." + subFieldName, subField));
 
                     try {
                         // 实例化表对象
@@ -104,8 +102,7 @@ public class CommonMapperResultHandler<T> implements ResultHandler {
             throw new IllegalArgumentException("只支持表与复合表赋值！");
         }
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> map = (Map<String, Object>)resultContext.getResultObject();
+        @SuppressWarnings("unchecked") Map<String, Object> map = (Map<String, Object>) resultContext.getResultObject();
         map.forEach((dbFieldName, dbFieldVale) -> {
 
             String fieldName;
@@ -124,7 +121,7 @@ public class CommonMapperResultHandler<T> implements ResultHandler {
             // 校验字段是否存在
             if (!fieldMap.containsKey(fieldName)) {
                 throw ExceptionUtil.wrapException("表[%s]中找不到属性[%s]，不能将DB中字段[%s]映射到表中", table.getName(), fieldName,
-                    dbFieldName);
+                                                  dbFieldName);
             }
 
             Field field = fieldMap.get(fieldName);
@@ -133,7 +130,7 @@ public class CommonMapperResultHandler<T> implements ResultHandler {
                 field.set(operateObj, dbFieldVale);
             } catch (IllegalAccessException e) {
                 throw ExceptionUtil.wrapException("将表[%s]属性[%s]中set值[%s]失败！", e, table.getName(), fieldName,
-                    dbFieldVale);
+                                                  dbFieldVale);
             }
         });
 
