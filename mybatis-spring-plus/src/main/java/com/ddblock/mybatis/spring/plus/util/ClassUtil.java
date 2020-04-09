@@ -1,16 +1,16 @@
 package com.ddblock.mybatis.spring.plus.util;
 
-import static com.ddblock.mybatis.spring.plus.util.StringUtil.formatToDBName;
+import com.ddblock.mybatis.spring.plus.model.annotation.ComplexTable;
+import com.ddblock.mybatis.spring.plus.model.annotation.Id;
+import com.ddblock.mybatis.spring.plus.model.annotation.Source;
+import com.ddblock.mybatis.spring.plus.model.annotation.Table;
+import org.springframework.lang.NonNull;
 
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.lang.NonNull;
-
-import com.ddblock.mybatis.spring.plus.model.annotation.ComplexTable;
-import com.ddblock.mybatis.spring.plus.model.annotation.Id;
-import com.ddblock.mybatis.spring.plus.model.annotation.Table;
+import static com.ddblock.mybatis.spring.plus.util.StringUtil.formatToDBName;
 
 /**
  * 操作Class对象的工具类
@@ -34,11 +34,8 @@ public class ClassUtil {
     /**
      * 获取表结构对应数据库中的表名
      *
-     * @param table
-     *            表结构类
-     * @param <T>
-     *            表结构
-     *
+     * @param table 表结构类
+     * @param <T>   表结构
      * @return 表名
      */
     public static <T> String getTableName(@NonNull Class<T> table) {
@@ -49,8 +46,7 @@ public class ClassUtil {
     /**
      * 获取表模型集合的查询片段SQL
      *
-     * @param complexTable
-     *            复合表模型
+     * @param complexTable 复合表模型
      * @return
      */
     public static String getSelectSQL(@NonNull Class<?> complexTable) {
@@ -78,8 +74,8 @@ public class ClassUtil {
                 fields.forEach((subFieldName, subField) -> {
 
                     com.ddblock.mybatis.spring.plus.model.annotation.Field annotation;
-                    annotation =
-                        subField.getDeclaredAnnotation(com.ddblock.mybatis.spring.plus.model.annotation.Field.class);
+                    annotation = subField.getDeclaredAnnotation(
+                            com.ddblock.mybatis.spring.plus.model.annotation.Field.class);
                     if (annotation != null) {
                         sb.append(",").append(subDBTableName).append(DB_SELECT_SPLIT);
                         sb.append(formatToDBName(subFieldName));
@@ -90,7 +86,13 @@ public class ClassUtil {
 
                 });
             } else {
-                sb.append(",").append(formatToDBName(fieldName));
+                // 如果存在源时则添加源的信息
+                fieldName = formatToDBName(fieldName);
+                Source source = field.getDeclaredAnnotation(Source.class);
+                if (source != null) {
+                    fieldName = source.value() + " AS " + fieldName;
+                }
+                sb.append(",").append(fieldName);
             }
         });
 
@@ -103,11 +105,8 @@ public class ClassUtil {
     /**
      * 获取表结构中主键字段名
      *
-     * @param table
-     *            表结构类
-     * @param <T>
-     *            表结构
-     *
+     * @param table 表结构类
+     * @param <T>   表结构
      * @return 表主键的字段名
      */
     public static <T> String getIdFieldName(Class<T> table) {
@@ -133,13 +132,9 @@ public class ClassUtil {
     /**
      * 获取对象中指定字段的值
      *
-     * @param obj
-     *            实例对象
-     * @param fieldName
-     *            字段名称
-     * @param <T>
-     *            实例的类型
-     *
+     * @param obj       实例对象
+     * @param fieldName 字段名称
+     * @param <T>       实例的类型
      * @return 字段值
      */
     public static <T> Object getFieldValue(T obj, String fieldName) {
@@ -163,11 +158,8 @@ public class ClassUtil {
     /**
      * 获取表结构类中所有字段的字段名
      *
-     * @param table
-     *            表结构类
-     * @param <T>
-     *            表结构
-     *
+     * @param table 表结构类
+     * @param <T>   表结构
      * @return 所有字段的字段名
      */
     public static <T> Map<String, String> getFieldAndDBFieldNames(Class<T> table) {
@@ -189,12 +181,10 @@ public class ClassUtil {
 
     /**
      * 获取除Object外，所有属性信息（包括private修饰的属性）
-     *
+     * <p>
      * Key：属性名称，Value：属性对象
      *
-     * @param clazz
-     *            类对象
-     *
+     * @param clazz 类对象
      * @return 除Object外，所有属性信息
      */
     public static Map<String, Field> getAllField(Class<?> clazz) {
