@@ -15,8 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.ddblock.mybatis.spring.plus.util.ClassUtil.DB_SELECT_SPLIT;
-
 /**
  * 将数据库中查询出来的Map数据，转换为Model数据
  *
@@ -55,14 +53,11 @@ public class CommonMapperResultHandler<T> implements ResultHandler {
             throw new RuntimeException("反射获取表对应的模型实例失败！", e);
         }
 
-        // 存放所有字段的名称与对应的字段对象
-        Map<String, Field> fieldMap = new HashMap<>();
         // 存放字段为单表的表名称与其对象
         Map<String, Object> modelFieldMap = new HashMap<>();
 
         // 处理单表模型
         if (table.getDeclaredAnnotation(Table.class) != null) {
-            fieldMap.putAll(ClassUtil.getAllField(table));
 
             // 处理复合表模型中字段为表模型的字段
         } else if (table.getDeclaredAnnotation(ComplexTable.class) != null) {
@@ -75,10 +70,6 @@ public class CommonMapperResultHandler<T> implements ResultHandler {
                 if (subTable.getDeclaredAnnotation(Table.class) != null) {
                     String subDBTableName = fieldName.equalsIgnoreCase(
                             subTable.getSimpleName()) ? StringUtil.formatToDBName(fieldName) : fieldName;
-                    Map<String, Field> subTableFieldMap = ClassUtil.getAllField(subTable);
-                    subTableFieldMap.forEach(
-                            (subFieldName, subField) -> fieldMap.put(subDBTableName + "." + subFieldName, subField));
-
                     try {
                         // 实例化表对象
                         Object subModel = subTable.newInstance();
@@ -90,10 +81,6 @@ public class CommonMapperResultHandler<T> implements ResultHandler {
                     } catch (Exception e) {
                         throw new RuntimeException("反射获取复合表中的单表对象并给复合表对象赋值失败！", e);
                     }
-
-                    // 处理非单表字段
-                } else {
-                    fieldMap.put(fieldName, field);
                 }
             });
 
@@ -104,37 +91,40 @@ public class CommonMapperResultHandler<T> implements ResultHandler {
 
         @SuppressWarnings("unchecked") Map<String, Object> map = (Map<String, Object>) resultContext.getResultObject();
         map.forEach((dbFieldName, dbFieldVale) -> {
-
-            String fieldName;
-            Object operateObj;
             // 处理复合表
-            if (dbFieldName.contains(DB_SELECT_SPLIT)) {
-                String[] arr = dbFieldName.split("\\.", 2);
-                fieldName = arr[0] + DB_SELECT_SPLIT + StringUtil.formatToJavaName(arr[1]);
-                operateObj = modelFieldMap.get(arr[0]);
-                // 处理单表
+            if (dbFieldVale instanceof Map) {
+                Object subModel = modelFieldMap.get(dbFieldName);
+                if (subModel == null) {
+                    throw ExceptionUtil.wrapException("表[%s]中找不到复合属性[%s]，不能映射多值", table.getName(), dbFieldName);
+                }
+                //noinspection unchecked
+                ((Map<String, Object>) dbFieldVale).forEach(
+                        (subDbFieldName, subDbFieldValue) -> setFieldValue(subDbFieldName, subDbFieldValue, subModel));
             } else {
-                fieldName = StringUtil.formatToJavaName(dbFieldName);
-                operateObj = model;
-            }
-
-            // 校验字段是否存在
-            if (!fieldMap.containsKey(fieldName)) {
-                throw ExceptionUtil.wrapException("表[%s]中找不到属性[%s]，不能将DB中字段[%s]映射到表中", table.getName(), fieldName,
-                                                  dbFieldName);
-            }
-
-            Field field = fieldMap.get(fieldName);
-            field.setAccessible(true);
-            try {
-                field.set(operateObj, dbFieldVale);
-            } catch (IllegalAccessException e) {
-                throw ExceptionUtil.wrapException("将表[%s]属性[%s]中set值[%s]失败！", e, table.getName(), fieldName,
-                                                  dbFieldVale);
+                // 处理单表
+                setFieldValue(dbFieldName, dbFieldVale, model);
             }
         });
 
         dataList.add(model);
+    }
+
+    private void setFieldValue(String dbFieldName, Object dbFieldVale, Object model) {
+        String fieldName = StringUtil.formatToJavaName(dbFieldName);
+        Field field = ClassUtil.getAllField(model.getClass()).get(fieldName);
+
+        // 校验字段是否存在
+        if (field == null) {
+            throw ExceptionUtil.wrapException("表[%s]中找不到属性[%s]，不能将DB中字段[%s]映射到表中", table.getName(), fieldName,
+                                              dbFieldName);
+        }
+
+        field.setAccessible(true);
+        try {
+            field.set(model, dbFieldVale);
+        } catch (IllegalAccessException e) {
+            throw ExceptionUtil.wrapException("将表[%s]属性[%s]中set值[%s]失败！", e, table.getName(), fieldName, dbFieldVale);
+        }
     }
 
     public Page<T> getPage() {

@@ -1,10 +1,12 @@
 package com.ddblock.mybatis.spring.boot.service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
+import com.ddblock.mybatis.spring.boot.StartApplication;
+import com.ddblock.mybatis.spring.boot.example.UserExample;
+import com.ddblock.mybatis.spring.boot.model.ComplexUser;
+import com.ddblock.mybatis.spring.boot.model.User;
+import com.ddblock.mybatis.spring.boot.model.User2;
+import com.ddblock.mybatis.spring.plus.mapper.support.Page;
+import com.ddblock.mybatis.spring.plus.util.ClassUtil;
 import org.apache.ibatis.jdbc.SQL;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,17 +17,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
-import com.ddblock.mybatis.spring.boot.StartApplication;
-import com.ddblock.mybatis.spring.boot.example.UserExample;
-import com.ddblock.mybatis.spring.boot.model.ComplexUser;
-import com.ddblock.mybatis.spring.boot.model.User;
-import com.ddblock.mybatis.spring.boot.model.User2;
-import com.ddblock.mybatis.spring.plus.mapper.support.Page;
-import com.ddblock.mybatis.spring.plus.util.ClassUtil;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 /**
  * 此处有使用到Spring的事务管理，因为注入UserService的实现对象UserServiceImpl添加了事务注解
- *
+ * <p>
  * 注意：在测试类或测试方法上添加@Transactional是没有用的，TODO 具体原因不清楚！！！
  *
  * @author XiaoJia
@@ -46,6 +45,25 @@ public class UserServiceTest extends AbstractJUnit4SpringContextTests {
     public void deleteTestData() {
         userService.deleteBatch(null);
         user2Service.deleteBatch(null);
+    }
+
+    @Test
+    public void testOneCache() {
+        // 一次缓存，当前会话有效
+        User addUser = addTestData();
+        userService.duplicateSelect(addUser.getId());
+    }
+
+    @Test
+    public void testTwoCache() {
+        // 二次缓存，全局有效，必须事务提交才会刷新到缓存（全局缓存的数据存储在MappedStatement中）
+        // 考虑到咱们是复用CommonMapper，只会对应一个MappedStatement，也就是大家操作同一个缓存对象
+        // 由于Mybatis是使用synchronize实现同步，则提交事务的同时同步二级缓存将导致阻塞，而且查询时也会阻塞。
+        // 所有本项目不开启二级缓存，如需验证二级缓存则在CommonMapper添加类注解@CacheNamespace
+        LOGGER.info("第一次查询");
+        userService.searchList(null);
+        LOGGER.info("第二次查询");
+        userService.searchList(null);
     }
 
     /**
@@ -186,6 +204,7 @@ public class UserServiceTest extends AbstractJUnit4SpringContextTests {
         UserExample example = new UserExample();
         example.setOrderByClause("id DESC");
         userService.searchPage(page, example);
+        Assert.assertEquals(page.getTotalRecord(), 3);
     }
 
     @Test

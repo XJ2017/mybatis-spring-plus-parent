@@ -1,10 +1,6 @@
 package com.ddblock.mybatis.spring.plus.interceptor;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.util.Properties;
-
+import com.ddblock.mybatis.spring.plus.mapper.RowBoundsEx;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.CachingExecutor;
 import org.apache.ibatis.executor.Executor;
@@ -17,11 +13,11 @@ import org.apache.ibatis.reflection.SystemMetaObject;
 import org.apache.ibatis.scripting.LanguageDriver;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
-import com.ddblock.mybatis.spring.plus.mapper.CommonMapperResultHandler;
-import com.ddblock.mybatis.spring.plus.mapper.support.Page;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.Properties;
 
 /**
  * 分页拦截器
@@ -29,10 +25,9 @@ import com.ddblock.mybatis.spring.plus.mapper.support.Page;
  * @author XiaoJia
  * @since 2019-03-17 12:34
  */
-@Intercepts(@Signature(type = Executor.class, method = "query",
-    args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class}))
+@Intercepts(@Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class,
+        RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class}))
 public class PageInterceptor implements Interceptor {
-    private static final Logger LOGGER = LogManager.getLogger(PageInterceptor.class);
 
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
@@ -40,18 +35,16 @@ public class PageInterceptor implements Interceptor {
         Object target = invocation.getTarget();
 
         Object[] args = invocation.getArgs();
-        MappedStatement mappedStatement = (MappedStatement)args[0];
+        MappedStatement mappedStatement = (MappedStatement) args[0];
         Object parameterObject = args[1];
-        ResultHandler resultHandler = (ResultHandler)args[3];
-        BoundSql boundSql = (BoundSql)args[5];
+        RowBounds rowBounds = (RowBounds) args[2];
+        BoundSql boundSql = (BoundSql) args[5];
 
-        boolean isPage = resultHandler instanceof CommonMapperResultHandler
-            && ((CommonMapperResultHandler)resultHandler).getPage() != null;
-        if (isPage && target instanceof Executor) {
+        if (rowBounds != RowBounds.DEFAULT && target instanceof Executor) {
             String originSql = boundSql.getSql();
 
             // 执行SQL获取符合条件的记录总数
-            Connection connection = ((Executor)target).getTransaction().getConnection();
+            Connection connection = ((Executor) target).getTransaction().getConnection();
 
             String pageSql = "select count(1) from ( " + originSql + " ) temp ";
             PreparedStatement preparedStatement = connection.prepareStatement(pageSql);
@@ -65,12 +58,11 @@ public class PageInterceptor implements Interceptor {
             if (resultSet.next()) {
                 count = resultSet.getLong(1);
             }
-            Page page = ((CommonMapperResultHandler)resultHandler).getPage();
-            page.setTotalRecord(count);
+            ((RowBoundsEx) rowBounds).setCount(count);
 
             // 在原SQL上添加limit语句
             MetaObject boundSqlMetaObject = SystemMetaObject.forObject(boundSql);
-            boundSqlMetaObject.setValue("sql", appendLimitSql(page, originSql));
+            boundSqlMetaObject.setValue("sql", appendLimitSql(rowBounds, originSql));
         }
 
         return invocation.proceed();
@@ -95,18 +87,12 @@ public class PageInterceptor implements Interceptor {
     /**
      * 追加limit
      *
-     * @param page
-     *            分页信息
-     * @param sql
-     *            原SQL
-     *
+     * @param rowBounds 行边界
+     * @param sql       原SQL
      * @return 生成的新SQL
      */
-    private String appendLimitSql(Page page, String sql) {
-        StringBuilder limit = new StringBuilder();
-        limit.append(sql);
-        limit.append(" LIMIT ").append(page.getStartRow()).append(" , ").append(page.getPageSize());
-        return limit.toString();
+    private String appendLimitSql(RowBounds rowBounds, String sql) {
+        return sql + " LIMIT " + rowBounds.getOffset() + " , " + rowBounds.getLimit();
     }
 
 }
